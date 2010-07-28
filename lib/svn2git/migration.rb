@@ -41,6 +41,7 @@ module Svn2Git
       options[:branches] = 'branches'
       options[:tags] = 'tags'
       options[:exclude] = []
+      options[:revision] = nil
 
       if File.exists?(File.expand_path(DEFAULT_AUTHORS_FILE))
         options[:authors] = DEFAULT_AUTHORS_FILE
@@ -53,6 +54,10 @@ module Svn2Git
 
         opts.separator ''
         opts.separator 'Specific options:'
+
+        opts.on('--revision REVISION', 'Revision ranges for partial/cauterized history to be supported. ($NUMBER, $NUMBER1:$NUMBER2(numeric ranges), $NUMBER:HEAD, and BASE:$NUMBER)') do |revision|
+          options[:revision] = revision
+        end
 
         opts.on('--rebase', 'Instead of cloning a new project, rebase an existing one against SVN') do
           options[:rebase] = true
@@ -123,7 +128,8 @@ module Svn2Git
       rootistrunk = @options[:rootistrunk]
       authors = @options[:authors]
       exclude = @options[:exclude]
-
+      revision = @options[:revision]
+      
       if rootistrunk
         # Non-standard repository layout.  The repository root is effectively 'trunk.'
         run_command("git svn init --no-metadata --trunk=#{@url}")
@@ -144,6 +150,8 @@ module Svn2Git
       run_command("git config svn.authorsfile #{authors}") unless authors.nil?
 
       cmd = "git svn fetch"
+      cmd += "--revision=#{revision} " unless revision.nil
+      
       unless exclude.empty?
         # Add exclude paths to the command line; some versions of git support
         # this for fetch only, later also for init.
