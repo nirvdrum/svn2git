@@ -149,8 +149,8 @@ module Svn2Git
 
       run_command("git config svn.authorsfile #{authors}") unless authors.nil?
 
-      cmd = "git svn fetch"
-      cmd += "--revision=#{revision} " unless revision.nil
+      cmd = "git svn fetch "
+      cmd += "--revision=#{revision} " unless revision.nil?
       
       unless exclude.empty?
         # Add exclude paths to the command line; some versions of git support
