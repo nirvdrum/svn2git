@@ -36,6 +36,7 @@ module Svn2Git
       # Set up reasonable defaults for options.
       options = {}
       options[:verbose] = false
+      options[:metadata] = false
       options[:rootistrunk] = false
       options[:trunk] = 'trunk'
       options[:branches] = 'branches'
@@ -88,6 +89,10 @@ module Svn2Git
           options[:tags] = nil
         end
 
+        opts.on('-m', '--metadata', 'Include metadata in git logs (git-svn-id)') do
+          options[:metadata] = true
+        end
+
         opts.on('--authors AUTHORS_FILE', "Path to file containing svn-to-git authors mapping (default: #{DEFAULT_AUTHORS_FILE})") do |authors|
           options[:authors] = authors
         end
@@ -120,18 +125,23 @@ module Svn2Git
       trunk = @options[:trunk]
       branches = @options[:branches]
       tags = @options[:tags]
+      metadata = @options[:metadata]
       rootistrunk = @options[:rootistrunk]
       authors = @options[:authors]
       exclude = @options[:exclude]
 
       if rootistrunk
         # Non-standard repository layout.  The repository root is effectively 'trunk.'
-        run_command("git svn init --no-metadata --trunk=#{@url}")
+        cmd = "git svn init "--no-metadata --trunk=#{@url}
+        cmd += "--no-metadata " unless metadata
+        cmd += "--trunk=#{@url}"
+        run_command(cmd)
 
       else
-        cmd = "git svn init --no-metadata "
+        cmd = "git svn init "
 
         # Add each component to the command that was passed as an argument.
+        cmd += "--no-metadata " unless metadata
         cmd += "--trunk=#{trunk} " unless trunk.nil?
         cmd += "--tags=#{tags} " unless tags.nil?
         cmd += "--branches=#{branches} " unless branches.nil?
