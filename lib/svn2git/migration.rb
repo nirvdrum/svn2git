@@ -132,13 +132,13 @@ module Svn2Git
 
       if rootistrunk
         # Non-standard repository layout.  The repository root is effectively 'trunk.'
-        cmd = "git svn init "
+        cmd = "git svn init --prefix=svn/ "
         cmd += "--no-metadata " unless metadata
         cmd += "--trunk=#{@url}"
         run_command(cmd)
 
       else
-        cmd = "git svn init "
+        cmd = "git svn init --prefix=svn/ "
 
         # Add each component to the command that was passed as an argument.
         cmd += "--no-metadata " unless metadata
@@ -197,18 +197,24 @@ module Svn2Git
 
     def fix_branches
       svn_branches = @remote.find_all { |b| not @tags.include?(b) }
+      svn_branches = @remote.find_all { |b| b.strip =~ %r{^svn\/} }
+
+      if @options[:rebase]
+         run_command("git svn fetch")
+      end
+
       svn_branches.each do |branch|
-        branch = branch.strip
+        branch = branch.gsub(/^svn\//,'').strip
 
         if @options[:rebase] && (@local.include?(branch) || branch == 'trunk')
-           branch = 'master' if branch == 'trunk'
-           run_command("git checkout -f #{branch}")
-           run_command("git svn rebase")
+           lbranch = 'master' if branch == 'trunk' else lbranch = branch
+           run_command("git checkout -f #{lbranch}")
+           run_command("git rebase remotes/svn/#{branch}")
            next
         end
 
-        next if branch == 'trunk'
-        run_command("git branch -t #{branch} remotes/#{branch}")
+        next if branch == 'trunk' || @local.include?(branch)
+        run_command("git branch -t #{branch} remotes/svn/#{branch}")
         run_command("git checkout #{branch}")
       end
     end
@@ -216,7 +222,7 @@ module Svn2Git
     def fix_trunk
       trunk = @remote.find { |b| b.strip == 'trunk' }
       if trunk && ! @options[:rebase]
-        run_command("git checkout trunk")
+        run_command("git checkout svn/trunk")
         run_command("git branch -D master")
         run_command("git checkout -f -b master")
       else
@@ -239,7 +245,7 @@ module Svn2Git
           ret << line
         end
       end
-      
+
       ret
     end
 
@@ -252,7 +258,7 @@ module Svn2Git
       puts @opts.help
       exit
     end
-    
+
     def verify_working_tree_is_clean
       status = run_command('git status --porcelain --untracked-files=no')
       unless status.strip == ''
