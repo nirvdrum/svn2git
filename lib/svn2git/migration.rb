@@ -126,10 +126,10 @@ module Svn2Git
 
       if rootistrunk
         # Non-standard repository layout.  The repository root is effectively 'trunk.'
-        run_command("git svn init --no-metadata --trunk=#{@url}")
+        run_command("git svn init --no-metadata --prefix=svn/ --trunk=#{@url}")
 
       else
-        cmd = "git svn init --no-metadata "
+        cmd = "git svn init --no-metadata --prefix=svn/ "
 
         # Add each component to the command that was passed as an argument.
         cmd += "--trunk=#{trunk} " unless trunk.nil?
@@ -187,18 +187,24 @@ module Svn2Git
 
     def fix_branches
       svn_branches = @remote.find_all { |b| not @tags.include?(b) }
+      svn_branches = @remote.find_all { |b| b.strip =~ %r{^svn\/} }
+      
+      if @options[:rebase]
+         run_command("git svn fetch")
+      end
+      
       svn_branches.each do |branch|
-        branch = branch.strip
+        branch = branch.gsub(/^svn\//,'').strip
 
         if @options[:rebase] && (@local.include?(branch) || branch == 'trunk')
-           branch = 'master' if branch == 'trunk'
-           run_command("git checkout -f #{branch}")
-           run_command("git svn rebase")
+           lbranch = 'master' if branch == 'trunk' else lbranch = branch
+           run_command("git checkout -f #{lbranch}")
+           run_command("git rebase remotes/svn/#{branch}")
            next
         end
 
-        next if branch == 'trunk'
-        run_command("git branch -t #{branch} remotes/#{branch}")
+        next if branch == 'trunk' || @local.include?(branch)
+        run_command("git branch -t #{branch} remotes/svn/#{branch}")
         run_command("git checkout #{branch}")
       end
     end
@@ -206,7 +212,7 @@ module Svn2Git
     def fix_trunk
       trunk = @remote.find { |b| b.strip == 'trunk' }
       if trunk && ! @options[:rebase]
-        run_command("git checkout trunk")
+        run_command("git checkout svn/trunk")
         run_command("git branch -D master")
         run_command("git checkout -f -b master")
       else
