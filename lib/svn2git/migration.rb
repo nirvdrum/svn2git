@@ -178,13 +178,13 @@ module Svn2Git
       @remote = run_command("git branch -r --no-color").split(/\n/).collect{ |b| b.gsub(/\*/,'').strip }
 
       # Tags are remote branches that start with "tags/".
-      @tags = @remote.find_all { |b| b.strip =~ %r{^tags\/} }
+      @tags = @remote.find_all { |b| b.strip =~ %r{^svn\/tags\/} }
     end
 
     def fix_tags
       @tags.each do |tag|
         tag = tag.strip
-        id = tag.gsub(%r{^tags\/}, '').strip
+        id = tag.gsub(%r{^svn\/tags\/}, '').strip
         subject = run_command("git log -1 --pretty=format:'%s' #{tag}")
         date = run_command("git log -1 --pretty=format:'%ci' #{tag}")
         subject = escape_quotes(subject)
@@ -205,9 +205,9 @@ module Svn2Git
 
       svn_branches.each do |branch|
         branch = branch.gsub(/^svn\//,'').strip
-
         if @options[:rebase] && (@local.include?(branch) || branch == 'trunk')
-           lbranch = 'master' if branch == 'trunk' else lbranch = branch
+           lbranch = branch
+           lbranch = 'master' if branch == 'trunk'
            run_command("git checkout -f #{lbranch}")
            run_command("git rebase remotes/svn/#{branch}")
            next
