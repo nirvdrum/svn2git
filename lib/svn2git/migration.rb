@@ -35,6 +35,7 @@ module Svn2Git
     def parse(args)
       # Set up reasonable defaults for options.
       options = {}
+      options[:metadata] = false
       options[:verbose] = false
       options[:rootistrunk] = false
       options[:trunk] = 'trunk'
@@ -92,6 +93,10 @@ module Svn2Git
           options[:authors] = authors
         end
 
+        opts.on('-m', '--metadata', "Retain the git-svn-id: tag that relates to the original svn revision number") do
+          options[:metadata] = true
+        end
+
         opts.on('--exclude REGEX', 'Specify a Perl regular expression to filter paths when fetching; can be used multiple times') do |regex|
           options[:exclude] << regex
         end
@@ -122,16 +127,21 @@ module Svn2Git
       tags = @options[:tags]
       rootistrunk = @options[:rootistrunk]
       authors = @options[:authors]
+      metadata = @options[:metadata]
       exclude = @options[:exclude]
 
       if rootistrunk
         # Non-standard repository layout.  The repository root is effectively 'trunk.'
-        run_command("git svn init --no-metadata --trunk=#{@url}")
+        cmd = "git svn init "
+        cmd += "--no-metadata " unless metadata
+        cmd += "--trunk=#{@url}"
+        run_command(cmd)
 
       else
-        cmd = "git svn init --no-metadata "
+        cmd = "git svn init "
 
         # Add each component to the command that was passed as an argument.
+        cmd += "--no-metadata " unless metadata
         cmd += "--trunk=#{trunk} " unless trunk.nil?
         cmd += "--tags=#{tags} " unless tags.nil?
         cmd += "--branches=#{branches} " unless branches.nil?
