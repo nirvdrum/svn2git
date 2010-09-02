@@ -132,7 +132,7 @@ module Svn2Git
 
       if rootistrunk
         # Non-standard repository layout.  The repository root is effectively 'trunk.'
-        cmd = "git svn init "--no-metadata --trunk=#{@url}
+        cmd = "git svn init "
         cmd += "--no-metadata " unless metadata
         cmd += "--trunk=#{@url}"
         run_command(cmd)
