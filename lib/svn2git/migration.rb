@@ -42,6 +42,7 @@ module Svn2Git
       options[:branches] = 'branches'
       options[:tags] = 'tags'
       options[:exclude] = []
+      options[:revision] = nil
 
       if File.exists?(File.expand_path(DEFAULT_AUTHORS_FILE))
         options[:authors] = DEFAULT_AUTHORS_FILE
@@ -89,6 +90,10 @@ module Svn2Git
           options[:tags] = nil
         end
 
+        opts.on('--revision REV', 'Start importing from SVN revision') do |revision|
+          options[:revision] = revision
+        end
+
         opts.on('-m', '--metadata', 'Include metadata in git logs (git-svn-id)') do
           options[:metadata] = true
         end
@@ -129,6 +134,7 @@ module Svn2Git
       rootistrunk = @options[:rootistrunk]
       authors = @options[:authors]
       exclude = @options[:exclude]
+      revision = @options[:revision]
 
       if rootistrunk
         # Non-standard repository layout.  The repository root is effectively 'trunk.'
@@ -153,7 +159,8 @@ module Svn2Git
 
       run_command("git config svn.authorsfile #{authors}") unless authors.nil?
 
-      cmd = "git svn fetch"
+      cmd = "git svn fetch "
+      cmd += "-r #{revision}:HEAD " unless revision.nil?
       unless exclude.empty?
         # Add exclude paths to the command line; some versions of git support
         # this for fetch only, later also for init.
@@ -164,7 +171,7 @@ module Svn2Git
           regex << "#{branches}[/][^/]+[/]" unless branches.nil?
         end
         regex = '^(?:' + regex.join('|') + ')(?:' + exclude.join('|') + ')'
-        cmd += " '--ignore-paths=#{regex}'"
+        cmd += "'--ignore-paths=#{regex}'"
       end
       run_command(cmd)
 
