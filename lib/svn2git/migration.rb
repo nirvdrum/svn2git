@@ -43,6 +43,7 @@ module Svn2Git
       options[:tags] = 'tags'
       options[:exclude] = []
       options[:revision] = nil
+      options[:username] = nil
 
       if File.exists?(File.expand_path(DEFAULT_AUTHORS_FILE))
         options[:authors] = DEFAULT_AUTHORS_FILE
@@ -60,6 +61,10 @@ module Svn2Git
           options[:rebase] = true
         end
 
+        opts.on('--username NAME', 'Username for transports that needs it (http(s), svn)') do |username|
+          options[:username] = username
+        end
+
         opts.on('--trunk TRUNK_PATH', 'Subpath to trunk from repository URL (default: trunk)') do |trunk|
           options[:trunk] = trunk
         end
@@ -67,6 +72,7 @@ module Svn2Git
         opts.on('--branches BRANCHES_PATH', 'Subpath to branches from repository URL (default: branches)') do |branches|
           options[:branches] = branches
         end
+
         opts.on('--tags TAGS_PATH', 'Subpath to tags from repository URL (default: tags)') do |tags|
           options[:tags] = tags
         end
@@ -135,10 +141,12 @@ module Svn2Git
       authors = @options[:authors]
       exclude = @options[:exclude]
       revision = @options[:revision]
+      username = @options[:username]
 
       if rootistrunk
         # Non-standard repository layout.  The repository root is effectively 'trunk.'
         cmd = "git svn init --prefix=svn/ "
+        cmd += "--username=#{username} " unless username.nil?
         cmd += "--no-metadata " unless metadata
         cmd += "--trunk=#{@url}"
         run_command(cmd)
@@ -147,6 +155,7 @@ module Svn2Git
         cmd = "git svn init --prefix=svn/ "
 
         # Add each component to the command that was passed as an argument.
+        cmd += "--username=#{username} " unless username.nil?
         cmd += "--no-metadata " unless metadata
         cmd += "--trunk=#{trunk} " unless trunk.nil?
         cmd += "--tags=#{tags} " unless tags.nil?
