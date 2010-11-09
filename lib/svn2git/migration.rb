@@ -42,6 +42,7 @@ module Svn2Git
       options[:branches] = 'branches'
       options[:tags] = 'tags'
       options[:exclude] = []
+      options[:revision] = nil
 
       if File.exists?(File.expand_path(DEFAULT_AUTHORS_FILE))
         options[:authors] = DEFAULT_AUTHORS_FILE
@@ -105,6 +106,10 @@ module Svn2Git
           options[:verbose] = true
         end
 
+        opts.on('--revision REV', 'Start fetch from specified revision') do |revision|
+          options[:revision] = revision
+        end
+
         opts.separator ""
 
         # No argument, shows at tail.  This will print an options summary.
@@ -129,6 +134,7 @@ module Svn2Git
       rootistrunk = @options[:rootistrunk]
       authors = @options[:authors]
       exclude = @options[:exclude]
+      revision = @options[:revision]
 
       if rootistrunk
         # Non-standard repository layout.  The repository root is effectively 'trunk.'
@@ -154,6 +160,7 @@ module Svn2Git
       run_command("git config svn.authorsfile #{authors}") unless authors.nil?
 
       cmd = "git svn fetch"
+      cmd += " --revision=#{revision}" unless revision.nil?
       unless exclude.empty?
         # Add exclude paths to the command line; some versions of git support
         # this for fetch only, later also for init.
