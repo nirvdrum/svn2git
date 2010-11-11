@@ -179,10 +179,15 @@ module Svn2Git
     end
 
     def get_branches
-      # Get the list of local and remote branches, taking care to ignore console color codes and ignoring the
-      # '*' character used to indicate the currently selected branch.
+      # Get the list of local and remote svn branches, taking care to ignore console color codes and ignoring
+      # the '*' character used to indicate the currently selected branch.
+      @remote_repos = run_command("git remote").split(/\n/).collect{ |b| b.strip }
       @local = run_command("git branch -l --no-color").split(/\n/).collect{ |b| b.gsub(/\*/,'').strip }
-      @remote = run_command("git branch -r --no-color").split(/\n/).collect{ |b| b.gsub(/\*/,'').strip }
+      @remote = run_command("git branch -r --no-color").split(/\n/).collect do |b|
+        b.gsub(/\*/,'').strip
+      end.find_all do
+        |b| (@remote_repos.index{ |r| (b =~ /^#{r}\//) == 0 }) == nil
+      end
 
       # Tags are remote branches that start with "tags/".
       @tags = @remote.find_all { |b| b.strip =~ %r{^tags\/} }
