@@ -22,6 +22,7 @@ module Svn2Git
 
     def run!
       if @options[:rebase]
+        do_fetch if @options[:fetch]
         get_branches
       else
         clone!
@@ -43,6 +44,7 @@ module Svn2Git
       options[:tags] = 'tags'
       options[:exclude] = []
       options[:revision] = nil
+      options[:fetch] = nil
 
       if File.exists?(File.expand_path(DEFAULT_AUTHORS_FILE))
         options[:authors] = DEFAULT_AUTHORS_FILE
@@ -108,6 +110,10 @@ module Svn2Git
 
         opts.on('--revision REV', 'Start fetch from specified revision') do |revision|
           options[:revision] = revision
+        end
+
+        opts.on('--fetch', 'Before rebasing, do a git svn --fetch to pull in new branches (only valid when --rebase is specified)') do
+          options[:fetch] = true
         end
 
         opts.separator ""
@@ -176,6 +182,10 @@ module Svn2Git
       run_command(cmd)
 
       get_branches
+    end
+
+    def do_fetch
+      run_command("git svn fetch")
     end
 
     def get_branches
