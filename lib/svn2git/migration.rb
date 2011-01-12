@@ -42,6 +42,7 @@ module Svn2Git
       options[:branches] = 'branches'
       options[:tags] = 'tags'
       options[:exclude] = []
+      options[:revision] = nil
 
       if File.exists?(File.expand_path(DEFAULT_AUTHORS_FILE))
         options[:authors] = DEFAULT_AUTHORS_FILE
@@ -104,6 +105,10 @@ module Svn2Git
         opts.on('-v', '--verbose', 'Be verbose in logging -- useful for debugging issues') do
           options[:verbose] = true
         end
+        
+        opts.on('--revision REVISION_NUMBER', 'Start the migration at a specific SVN revision number') do |revision|
+          options[:revision] = revision
+        end
 
         opts.separator ""
 
@@ -129,6 +134,7 @@ module Svn2Git
       rootistrunk = @options[:rootistrunk]
       authors = @options[:authors]
       exclude = @options[:exclude]
+      revision = @options[:revision]
 
       if rootistrunk
         # Non-standard repository layout.  The repository root is effectively 'trunk.'
@@ -166,6 +172,7 @@ module Svn2Git
         regex = '^(?:' + regex.join('|') + ')(?:' + exclude.join('|') + ')'
         cmd += " '--ignore-paths=#{regex}'"
       end
+      cmd += " --revision=#{revision}:HEAD " unless revision.nil?
       run_command(cmd)
 
       get_branches
