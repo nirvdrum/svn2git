@@ -208,7 +208,7 @@ module Svn2Git
         end
 
         next if branch == 'trunk'
-        run_command("git branch -t #{branch} remotes/#{branch}")
+        run_command("git branch --track #{branch} remotes/#{branch}")
         run_command("git checkout #{branch}")
       end
     end
