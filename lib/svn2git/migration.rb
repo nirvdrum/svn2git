@@ -22,6 +22,7 @@ module Svn2Git
 
     def run!
       if @options[:rebase]
+        do_fetch if @options[:fetch]
         get_branches
       else
         clone!
@@ -42,6 +43,8 @@ module Svn2Git
       options[:branches] = 'branches'
       options[:tags] = 'tags'
       options[:exclude] = []
+      options[:revision] = nil
+      options[:fetch] = nil
 
       if File.exists?(File.expand_path(DEFAULT_AUTHORS_FILE))
         options[:authors] = DEFAULT_AUTHORS_FILE
@@ -105,6 +108,14 @@ module Svn2Git
           options[:verbose] = true
         end
 
+        opts.on('--revision REV', 'Start fetch from specified revision') do |revision|
+          options[:revision] = revision
+        end
+
+        opts.on('--fetch', 'Before rebasing, do a git svn --fetch to pull in new branches (only valid when --rebase is specified)') do
+          options[:fetch] = true
+        end
+
         opts.separator ""
 
         # No argument, shows at tail.  This will print an options summary.
@@ -129,6 +140,7 @@ module Svn2Git
       rootistrunk = @options[:rootistrunk]
       authors = @options[:authors]
       exclude = @options[:exclude]
+      revision = @options[:revision]
 
       if rootistrunk
         # Non-standard repository layout.  The repository root is effectively 'trunk.'
@@ -154,6 +166,7 @@ module Svn2Git
       run_command("git config svn.authorsfile #{authors}") unless authors.nil?
 
       cmd = "git svn fetch"
+      cmd += " --revision=#{revision}" unless revision.nil?
       unless exclude.empty?
         # Add exclude paths to the command line; some versions of git support
         # this for fetch only, later also for init.
@@ -171,11 +184,20 @@ module Svn2Git
       get_branches
     end
 
+    def do_fetch
+      run_command("git svn fetch")
+    end
+
     def get_branches
-      # Get the list of local and remote branches, taking care to ignore console color codes and ignoring the
-      # '*' character used to indicate the currently selected branch.
+      # Get the list of local and remote svn branches, taking care to ignore console color codes and ignoring
+      # the '*' character used to indicate the currently selected branch.
+      @remote_repos = run_command("git remote").split(/\n/).collect{ |b| b.strip }
       @local = run_command("git branch -l --no-color").split(/\n/).collect{ |b| b.gsub(/\*/,'').strip }
-      @remote = run_command("git branch -r --no-color").split(/\n/).collect{ |b| b.gsub(/\*/,'').strip }
+      @remote = run_command("git branch -r --no-color").split(/\n/).collect do |b|
+        b.gsub(/\*/,'').strip
+      end.find_all do
+        |b| (@remote_repos.index{ |r| (b =~ /^#{r}\//) == 0 }) == nil
+      end
 
       # Tags are remote branches that start with "tags/".
       @tags = @remote.find_all { |b| b.strip =~ %r{^tags\/} }
