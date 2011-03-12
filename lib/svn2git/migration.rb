@@ -196,7 +196,7 @@ module Svn2Git
       @remote = run_command("git branch -r --no-color").split(/\n/).collect do |b|
         b.gsub(/\*/,'').strip
       end.find_all do
-        |b| (@remote_repos.index{ |r| (b =~ /^#{r}\//) == 0 }) == nil
+        |b| (@remote_repos.find{ |r| (b =~ /^#{r}\//) == 0 }) == nil
       end
 
       # Tags are remote branches that start with "tags/".
