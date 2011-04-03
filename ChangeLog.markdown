@@ -1,3 +1,11 @@
+# 2.1.0
+
+  This release handles some corner cases with cloning git repositories, making svn2git applicable to wider environments.
+  
+  * Added --no-minimize-url option for migrating specific subprojects from an SVN repo containing several projects (thanks fmjrey).
+  * Added --username option for migrating password-protected repositories (thanks svenax).
+  * Added --revision option for specifying the revision to start importing from (thanks svenax).
+
 # 2.0.0 - 2010-05-29
 
   This release adds the oft requested incremental SVN update support.  If you run svn2git with the `--rebase` option on an existing

@@ -107,6 +107,19 @@ doc directory and the backup files you once accidently added.
 
         $ svn2git http://svn.example.com/path/to/repo --exclude doc --exclude '.*~$'
 
+6. The svn repo actually tracks several projects and you only want to migrate
+one of them.
+
+        $ svn2git http://svn.example.com/path/to/repo/nested_project --no-minimize-url
+
+7. The svn repo is password protected.
+
+        $ svn2git http://svn.example.com/path/to/repo --username <<user_with_perms>>
+
+8. You need to migrate starting at a specific svn revision number.
+
+        $ svn2git http://svn.example.com/path/to/repo --revision <<starting_revision_number>>
+
 The above will create a git repository in the current directory with the git
 version of the svn repository. Hence, you need to make a directory that you
 want your new git repo to exist in, change into it and then run one of the

@@ -38,6 +38,7 @@ module Svn2Git
       options = {}
       options[:verbose] = false
       options[:metadata] = false
+      options[:nominimizeurl] = false
       options[:rootistrunk] = false
       options[:trunk] = 'trunk'
       options[:branches] = 'branches'
@@ -45,6 +46,7 @@ module Svn2Git
       options[:exclude] = []
       options[:revision] = nil
       options[:fetch] = nil
+      options[:username] = nil
 
       if File.exists?(File.expand_path(DEFAULT_AUTHORS_FILE))
         options[:authors] = DEFAULT_AUTHORS_FILE
@@ -62,6 +64,10 @@ module Svn2Git
           options[:rebase] = true
         end
 
+        opts.on('--username NAME', 'Username for transports that needs it (http(s), svn)') do |username|
+          options[:username] = username
+        end
+
         opts.on('--trunk TRUNK_PATH', 'Subpath to trunk from repository URL (default: trunk)') do |trunk|
           options[:trunk] = trunk
         end
@@ -69,6 +75,7 @@ module Svn2Git
         opts.on('--branches BRANCHES_PATH', 'Subpath to branches from repository URL (default: branches)') do |branches|
           options[:branches] = branches
         end
+
         opts.on('--tags TAGS_PATH', 'Subpath to tags from repository URL (default: tags)') do |tags|
           options[:tags] = tags
         end
@@ -90,6 +97,14 @@ module Svn2Git
 
         opts.on('--notags', 'Do not try to import any tags') do
           options[:tags] = nil
+        end
+
+        opts.on('--no-minimize-url', 'Accept URLs as-is without attempting to connect to a higher level directory') do
+          options[:nominimizeurl] = true
+        end
+
+        opts.on('--revision REV', 'Start importing from SVN revision') do |revision|
+          options[:revision] = revision
         end
 
         opts.on('-m', '--metadata', 'Include metadata in git logs (git-svn-id)') do
@@ -137,23 +152,33 @@ module Svn2Git
       branches = @options[:branches]
       tags = @options[:tags]
       metadata = @options[:metadata]
+      nominimizeurl = @options[:nominimizeurl]
       rootistrunk = @options[:rootistrunk]
       authors = @options[:authors]
       exclude = @options[:exclude]
       revision = @options[:revision]
+      username = @options[:username]
 
       if rootistrunk
         # Non-standard repository layout.  The repository root is effectively 'trunk.'
-        cmd = "git svn init "
+        cmd = "git svn init --prefix=svn/ "
+        cmd += "--username=#{username} " unless username.nil?
         cmd += "--no-metadata " unless metadata
+        if nominimizeurl
+          cmd += "--no-minimize-url "
+        end
         cmd += "--trunk=#{@url}"
         run_command(cmd)
 
       else
-        cmd = "git svn init "
+        cmd = "git svn init --prefix=svn/ "
 
         # Add each component to the command that was passed as an argument.
+        cmd += "--username=#{username} " unless username.nil?
         cmd += "--no-metadata " unless metadata
+        if nominimizeurl
+          cmd += "--no-minimize-url "
+        end
         cmd += "--trunk=#{trunk} " unless trunk.nil?
         cmd += "--tags=#{tags} " unless tags.nil?
         cmd += "--branches=#{branches} " unless branches.nil?
@@ -165,8 +190,8 @@ module Svn2Git
 
       run_command("git config svn.authorsfile #{authors}") unless authors.nil?
 
-      cmd = "git svn fetch"
-      cmd += " --revision=#{revision}" unless revision.nil?
+      cmd = "git svn fetch "
+      cmd += "-r #{revision}:HEAD " unless revision.nil?
       unless exclude.empty?
         # Add exclude paths to the command line; some versions of git support
         # this for fetch only, later also for init.
@@ -177,7 +202,7 @@ module Svn2Git
           regex << "#{branches}[/][^/]+[/]" unless branches.nil?
         end
         regex = '^(?:' + regex.join('|') + ')(?:' + exclude.join('|') + ')'
-        cmd += " '--ignore-paths=#{regex}'"
+        cmd += "'--ignore-paths=#{regex}'"
       end
       run_command(cmd)
 
@@ -200,13 +225,13 @@ module Svn2Git
       end
 
       # Tags are remote branches that start with "tags/".
-      @tags = @remote.find_all { |b| b.strip =~ %r{^tags\/} }
+      @tags = @remote.find_all { |b| b.strip =~ %r{^svn\/tags\/} }
     end
 
     def fix_tags
       @tags.each do |tag|
         tag = tag.strip
-        id = tag.gsub(%r{^tags\/}, '').strip
+        id = tag.gsub(%r{^svn\/tags\/}, '').strip
         subject = run_command("git log -1 --pretty=format:'%s' #{tag}")
         date = run_command("git log -1 --pretty=format:'%ci' #{tag}")
         subject = escape_quotes(subject)
@@ -219,18 +244,24 @@ module Svn2Git
 
     def fix_branches
       svn_branches = @remote.find_all { |b| not @tags.include?(b) }
-      svn_branches.each do |branch|
-        branch = branch.strip
+      svn_branches = @remote.find_all { |b| b.strip =~ %r{^svn\/} }
 
+      if @options[:rebase]
+         run_command("git svn fetch")
+      end
+
+      svn_branches.each do |branch|
+        branch = branch.gsub(/^svn\//,'').strip
         if @options[:rebase] && (@local.include?(branch) || branch == 'trunk')
-           branch = 'master' if branch == 'trunk'
-           run_command("git checkout -f #{branch}")
-           run_command("git svn rebase")
+           lbranch = branch
+           lbranch = 'master' if branch == 'trunk'
+           run_command("git checkout -f #{lbranch}")
+           run_command("git rebase remotes/svn/#{branch}")
            next
         end
 
-        next if branch == 'trunk'
-        run_command("git branch --track #{branch} remotes/#{branch}")
+        next if branch == 'trunk' || @local.include?(branch)
+        run_command("git branch --track #{branch} remotes/svn/#{branch}")
         run_command("git checkout #{branch}")
       end
     end
@@ -238,7 +269,7 @@ module Svn2Git
     def fix_trunk
       trunk = @remote.find { |b| b.strip == 'trunk' }
       if trunk && ! @options[:rebase]
-        run_command("git checkout trunk")
+        run_command("git checkout svn/trunk")
         run_command("git branch -D master")
         run_command("git checkout -f -b master")
       else
@@ -261,7 +292,7 @@ module Svn2Git
           ret << line
         end
       end
-      
+
       ret
     end
 
