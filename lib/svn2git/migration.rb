@@ -212,15 +212,18 @@ module Svn2Git
     def fix_tags
       @tags.each do |tag|
         tag = tag.strip
-        id = tag.gsub(%r{^svn\/tags\/}, '').strip
+        id      = tag.gsub(%r{^svn\/tags\/}, '').strip
         subject = run_command("git log -1 --pretty=format:'%s' #{tag}")
-        date = run_command("git log -1 --pretty=format:'%ci' #{tag}")
-        subject = escape_quotes(subject)
-        date = escape_quotes(date)
-        id = escape_quotes(id)
-        run_command("GIT_COMMITTER_DATE='#{date}' git tag -a -m '#{subject}' '#{id}' '#{escape_quotes(tag)}'")
+        date    = run_command("git log -1 --pretty=format:'%ci' #{tag}")
+        author  = run_command("git log -1 --pretty=format:'%an' #{tag}")
+        email   = run_command("git log -1 --pretty=format:'%ae' #{tag}")
+        run_command("git config --local user.name '#{escape_quotes(author)}'")
+        run_command("git config --local user.email '#{escape_quotes(email)}'")
+        run_command("GIT_COMMITTER_DATE='#{escape_quotes(date)}' git tag -a -m '#{escape_quotes(subject)}' '#{escape_quotes(id)}' '#{escape_quotes(tag)}'")
         run_command("git branch -d -r #{tag}")
       end
+      run_command("git config --local --unset user.name")
+      run_command("git config --local --unset user.email")
     end
 
     def fix_branches
