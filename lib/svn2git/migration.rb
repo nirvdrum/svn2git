@@ -222,8 +222,11 @@ module Svn2Git
         run_command("GIT_COMMITTER_DATE='#{escape_quotes(date)}' git tag -a -m '#{escape_quotes(subject)}' '#{escape_quotes(id)}' '#{escape_quotes(tag)}'")
         run_command("git branch -d -r #{tag}")
       end
-      run_command("git config --local --unset user.name")
-      run_command("git config --local --unset user.email")
+
+      unless @tags.empty?
+        run_command("git config --local --unset user.name")
+        run_command("git config --local --unset user.email")
+      end
     end
 
     def fix_branches
