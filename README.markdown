@@ -204,7 +204,7 @@ FAQ
     
     If we were to reference the parent of this svn tagged commit there could
     potentially be situations where a developer would checkout a tag in git
-    and the resulting code base would be different then if they checked out
+    and the resulting code base would be different than if they checked out
     that very same tag in the original svn repo. This is only due to the fact
     that the svn tags allow changesets in them, making them not just annotated
     tags.
