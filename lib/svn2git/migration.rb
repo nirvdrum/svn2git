@@ -224,8 +224,8 @@ module Svn2Git
     end
 
     def fix_branches
-      svn_branches = @remote.find_all { |b| not @tags.include?(b) }
-      svn_branches = @remote.find_all { |b| b.strip =~ %r{^svn\/} }
+      svn_branches = @remote - @tags
+      svn_branches.delete_if { |b| b.strip !~ %r{^svn\/} }
 
       if @options[:rebase]
          run_command("git svn fetch")
