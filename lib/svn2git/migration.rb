@@ -267,11 +267,17 @@ module Svn2Git
 
       ret = ''
 
+      cmd = "2>&1 #{cmd}"
       IO.popen(cmd) do |stdout|
         stdout.each do |line|
           log line
           ret << line
         end
+      end
+
+      unless $?.exitstatus == 0
+        $stderr.puts "command failed:\n#{cmd}"
+        exit 1
       end
 
       ret
