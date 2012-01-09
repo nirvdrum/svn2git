@@ -213,14 +213,14 @@ module Svn2Git
       @tags.each do |tag|
         tag = tag.strip
         id      = tag.gsub(%r{^svn\/tags\/}, '').strip
-        subject = run_command("git log -1 --pretty=format:'%s' #{tag}")
-        date    = run_command("git log -1 --pretty=format:'%ci' #{tag}")
-        author  = run_command("git log -1 --pretty=format:'%an' #{tag}")
-        email   = run_command("git log -1 --pretty=format:'%ae' #{tag}")
+        subject = run_command("git log -1 --pretty=format:'%s' '#{tag}'")
+        date    = run_command("git log -1 --pretty=format:'%ci' '#{tag}'")
+        author  = run_command("git log -1 --pretty=format:'%an' '#{tag}'")
+        email   = run_command("git log -1 --pretty=format:'%ae' '#{tag}'")
         run_command("git config --local user.name '#{escape_quotes(author)}'")
         run_command("git config --local user.email '#{escape_quotes(email)}'")
         run_command("GIT_COMMITTER_DATE='#{escape_quotes(date)}' git tag -a -m '#{escape_quotes(subject)}' '#{escape_quotes(id)}' '#{escape_quotes(tag)}'")
-        run_command("git branch -d -r #{tag}")
+        run_command("git branch -d -r '#{tag}'")
       end
 
       unless @tags.empty?
