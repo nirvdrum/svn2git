@@ -213,13 +213,13 @@ module Svn2Git
       @tags.each do |tag|
         tag = tag.strip
         id = tag.gsub(%r{^svn\/tags\/}, '').strip
-        subject = run_command("git log -1 --pretty=format:'%s' #{tag}")
-        date = run_command("git log -1 --pretty=format:'%ci' #{tag}")
+        subject = run_command("git log -1 --pretty=format:'%s' '#{tag}'")
+        date = run_command("git log -1 --pretty=format:'%ci' '#{tag}'")
         subject = escape_quotes(subject)
         date = escape_quotes(date)
         id = escape_quotes(id)
         run_command("GIT_COMMITTER_DATE='#{date}' git tag -a -m '#{subject}' '#{id}' '#{escape_quotes(tag)}'")
-        run_command("git branch -d -r #{tag}")
+        run_command("git branch -d -r '#{tag}'")
       end
     end
 
