@@ -101,7 +101,7 @@ module Svn2Git
           options[:nominimizeurl] = true
         end
 
-        opts.on('--revision REV', 'Start importing from SVN revision') do |revision|
+        opts.on('--revision SREV[:EREV]', 'Start importing from SVN revision SREV; optionally end at EREV') do |revision|
           options[:revision] = revision
         end
 
@@ -181,7 +181,11 @@ module Svn2Git
       run_command("git config --local svn.authorsfile #{authors}") unless authors.nil?
 
       cmd = "git svn fetch "
-      cmd += "-r #{revision}:HEAD " unless revision.nil?
+      unless revision.nil?
+        range = revision.split(":")
+        range[1] = "HEAD" unless range[1]
+        cmd += "-r #{range[0]}:#{range[1]} "
+      end
       unless exclude.empty?
         # Add exclude paths to the command line; some versions of git support
         # this for fetch only, later also for init.
