@@ -211,8 +211,9 @@ module Svn2Git
 
     def fix_tags
       current = {}
-      current['user.name']  = run_command("git config --local --get user.name")
-      current['user.email'] = run_command("git config --local --get user.email")
+      # use || true so the command does not fail if no local settings exist
+      current['user.name']  = run_command("git config --local --get user.name || true")
+      current['user.email'] = run_command("git config --local --get user.email || true")
 
       @tags.each do |tag|
         tag = tag.strip
@@ -230,10 +231,10 @@ module Svn2Git
     ensure
       current.each_pair do |name, value|
         # If a line was read, then there was a config value so restore it.
-        # Otherwise unset the value because originally there was none.
+        # Otherwise unset the value because originally there was none, but only if there were any tags (otherwise the command will error)
         if value[-1] == "\n"
           run_command("git config --local #{name} '#{value.chomp("\n")}'")
-        else
+        elsif !@tags.empty?
           run_command("git config --local --unset #{name}")
         end
       end
