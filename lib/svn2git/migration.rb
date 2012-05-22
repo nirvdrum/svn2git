@@ -149,33 +149,35 @@ module Svn2Git
       revision = @options[:revision]
       username = @options[:username]
 
-      if rootistrunk
-        # Non-standard repository layout.  The repository root is effectively 'trunk.'
-        cmd = "git svn init --prefix=svn/ "
-        cmd += "--username=#{username} " unless username.nil?
-        cmd += "--no-metadata " unless metadata
-        if nominimizeurl
-          cmd += "--no-minimize-url "
+      if !File.exists?(".git")
+        if rootistrunk
+          # Non-standard repository layout.  The repository root is effectively 'trunk.'
+          cmd = "git svn init --prefix=svn/ "
+          cmd += "--username=#{username} " unless username.nil?
+          cmd += "--no-metadata " unless metadata
+          if nominimizeurl
+            cmd += "--no-minimize-url "
+          end
+          cmd += "--trunk=#{@url}"
+          run_command(cmd)
+
+        else
+          cmd = "git svn init --prefix=svn/ "
+
+          # Add each component to the command that was passed as an argument.
+          cmd += "--username=#{username} " unless username.nil?
+          cmd += "--no-metadata " unless metadata
+          if nominimizeurl
+            cmd += "--no-minimize-url "
+          end
+          cmd += "--trunk=#{trunk} " unless trunk.nil?
+          cmd += "--tags=#{tags} " unless tags.nil?
+          cmd += "--branches=#{branches} " unless branches.nil?
+
+          cmd += @url
+
+          run_command(cmd)
         end
-        cmd += "--trunk=#{@url}"
-        run_command(cmd)
-
-      else
-        cmd = "git svn init --prefix=svn/ "
-
-        # Add each component to the command that was passed as an argument.
-        cmd += "--username=#{username} " unless username.nil?
-        cmd += "--no-metadata " unless metadata
-        if nominimizeurl
-          cmd += "--no-minimize-url "
-        end
-        cmd += "--trunk=#{trunk} " unless trunk.nil?
-        cmd += "--tags=#{tags} " unless tags.nil?
-        cmd += "--branches=#{branches} " unless branches.nil?
-
-        cmd += @url
-
-        run_command(cmd)
       end
 
       run_command("git config --local svn.authorsfile #{authors}") unless authors.nil?
