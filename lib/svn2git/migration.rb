@@ -180,11 +180,11 @@ module Svn2Git
 
       run_command("git config --local svn.authorsfile #{authors}") unless authors.nil?
 
-      cmd = "git svn fetch "
+      cmd = "git svn fetch"
       unless revision.nil?
         range = revision.split(":")
         range[1] = "HEAD" unless range[1]
-        cmd += "-r #{range[0]}:#{range[1]} "
+        cmd += " -r #{range[0]}:#{range[1]}"
       end
       unless exclude.empty?
         # Add exclude paths to the command line; some versions of git support
@@ -196,7 +196,7 @@ module Svn2Git
           regex << "#{branches}[/][^/]+[/]" unless branches.nil?
         end
         regex = '^(?:' + regex.join('|') + ')(?:' + exclude.join('|') + ')'
-        cmd += "'--ignore-paths=#{regex}'"
+        cmd += " '--ignore-paths=#{regex}'"
       end
       run_command(cmd)
 
