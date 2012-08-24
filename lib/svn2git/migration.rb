@@ -221,24 +221,27 @@ module Svn2Git
       @tags.each do |tag|
         tag = tag.strip
         id      = tag.gsub(%r{^svn\/tags\/}, '').strip
-        subject = run_command("git log -1 --pretty=format:'%s' '#{escape_quotes(tag)}'")
-        date    = run_command("git log -1 --pretty=format:'%ci' '#{escape_quotes(tag)}'")
-        author  = run_command("git log -1 --pretty=format:'%an' '#{escape_quotes(tag)}'")
-        email   = run_command("git log -1 --pretty=format:'%ae' '#{escape_quotes(tag)}'")
-        run_command("git config --local user.name '#{escape_quotes(author)}'")
-        run_command("git config --local user.email '#{escape_quotes(email)}'")
-        run_command("GIT_COMMITTER_DATE='#{escape_quotes(date)}' git tag -a -m '#{escape_quotes(subject)}' '#{escape_quotes(id)}' '#{escape_quotes(tag)}'")
-        run_command("git branch -d -r '#{escape_quotes(tag)}'")
+        subject = run_command("git log -1 --pretty=format:'%s' \"#{escape_quotes(tag)}\"").chomp("'").reverse.chomp("'").reverse
+        date    = run_command("git log -1 --pretty=format:'%ci' \"#{escape_quotes(tag)}\"").chomp("'").reverse.chomp("'").reverse
+        author  = run_command("git log -1 --pretty=format:'%an' \"#{escape_quotes(tag)}\"").chomp("'").reverse.chomp("'").reverse
+        email   = run_command("git log -1 --pretty=format:'%ae' \"#{escape_quotes(tag)}\"").chomp("'").reverse.chomp("'").reverse
+        run_command("git config --local user.name \"#{escape_quotes(author)}\"")
+        run_command("git config --local user.email \"#{escape_quotes(email)}\"")
+        ENV['GIT_COMMITTER_DATE']="#{escape_quotes(date)}"
+        run_command("git tag -a -m \"#{escape_quotes(subject)}\" \"#{escape_quotes(id)}\" \"#{escape_quotes(tag)}\"")
+        ENV['GIT_COMMITTER_DATE']=nil
+        run_command("git branch -d -r \"#{escape_quotes(tag)}\"")
       end
 
     ensure
       # We only change the git config values if there are @tags available.  So it stands to reason we should revert them only in that case.
+      ENV['GIT_COMMITTER_DATE']=nil
       unless @tags.empty?
         current.each_pair do |name, value|
           # If a line was read, then there was a config value so restore it.
           # Otherwise unset the value because originally there was none.
           if value.strip != ''
-            run_command("git config --local #{name} '#{value.strip}'")
+            run_command("git config --local #{name} \"#{value.strip}\"")
           else
             run_command("git config --local --unset #{name}")
           end
@@ -325,7 +328,7 @@ module Svn2Git
     end
 
     def escape_quotes(str)
-      str.gsub("'", "'\\\\''")
+      str.gsub(/[']/, '\\\\\'')
     end
 
   end
