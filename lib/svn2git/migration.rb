@@ -220,7 +220,7 @@ module Svn2Git
 
       @tags.each do |tag|
         tag = tag.strip
-        id      = tag.gsub(%r{^svn\/tags\/}, '').strip
+        id      = tag.gsub(%r{^svn\/tags\/[-]*}, '').strip
         subject = run_command("git log -1 --pretty=format:'%s' '#{escape_quotes(tag)}'")
         date    = run_command("git log -1 --pretty=format:'%ci' '#{escape_quotes(tag)}'")
         author  = run_command("git log -1 --pretty=format:'%an' '#{escape_quotes(tag)}'")
