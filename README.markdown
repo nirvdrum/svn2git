@@ -174,11 +174,11 @@ repository which name on its own line. This would allow you to easily
 redirect the output of this command sequence to `~/.svn2git/authors` and have
 a very good starting point for your mapping.
 
-    $ svn log --quiet | grep -E "r[0-9]+ \| .+ \|" | awk '{print $3}' | sort | uniq
+    $ svn log --quiet | \grep -E "r[0-9]+ \| .+ \|" | \awk '{print $3}' | \sort | \uniq
 
 Or, for a remote URL:
 
-    $ svn log --quiet http://path/to/root/of/project | grep -E "r[0-9]+ \| .+ \|" | awk '{print $3}' | sort | uniq
+    $ svn log --quiet http://path/to/root/of/project | \grep -E "r[0-9]+ \| .+ \|" | \awk '{print $3}' | \sort | \uniq
 
 Debugging
 ---------
