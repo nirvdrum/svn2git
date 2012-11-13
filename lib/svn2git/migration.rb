@@ -196,8 +196,13 @@ module Svn2Git
           regex << "#{branches}[/][^/]+[/]" unless branches.nil?
         end
         regex = '^(?:' + regex.join('|') + ')(?:' + exclude.join('|') + ')'
-        cmd += "'--ignore-paths=#{regex}'"
+        cmd += "'--ignore-paths=#{regex}' "
       end
+
+      # add user name here to force git svn to ask for the same username as
+      # the one used for initializing the repo.
+      cmd += "--username=#{username} " unless username.nil?
+
       run_command(cmd)
 
       get_branches
@@ -332,7 +337,6 @@ module Svn2Git
     def escape_quotes(str)
       str.gsub("'", "'\\\\''")
     end
-
   end
 end
 
