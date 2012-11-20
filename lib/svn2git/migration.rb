@@ -16,7 +16,7 @@ module Svn2Git
       else
          show_help_message('Missing SVN_URL parameter') if args.empty?
          show_help_message('Too many arguments') if args.size > 1
-         @url = args.first.gsub(' ', "\\ ")
+         @url = args.first
       end
     end
 
@@ -157,7 +157,7 @@ module Svn2Git
         if nominimizeurl
           cmd += "--no-minimize-url "
         end
-        cmd += "--trunk=#{@url}"
+        cmd += "'--trunk=#{@url}'"
         run_command(cmd)
 
       else
@@ -173,7 +173,7 @@ module Svn2Git
         cmd += "--tags=#{tags} " unless tags.nil?
         cmd += "--branches=#{branches} " unless branches.nil?
 
-        cmd += @url
+        cmd += "\'#{@url}\'"
 
         run_command(cmd)
       end
