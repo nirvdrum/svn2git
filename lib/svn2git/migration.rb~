@@ -45,7 +45,6 @@ module Svn2Git
       options[:exclude] = []
       options[:revision] = nil
       options[:username] = nil
-      options[:rewriteroot] = nil
 
       if File.exists?(File.expand_path(DEFAULT_AUTHORS_FILE))
         options[:authors] = DEFAULT_AUTHORS_FILE
@@ -114,11 +113,6 @@ module Svn2Git
           options[:authors] = authors
         end
 
-        opts.on('--rewrite-root URL', "Use --rewrite-root=URL option to git svn init (see git svn docs); implies --metadata") do |rewriteroot|
-          options[:rewriteroot] = rewriteroot
-          options[:metadata] = true
-        end
-
         opts.on('--exclude REGEX', 'Specify a Perl regular expression to filter paths when fetching; can be used multiple times') do |regex|
           options[:exclude] << regex
         end
@@ -154,14 +148,12 @@ module Svn2Git
       exclude = @options[:exclude]
       revision = @options[:revision]
       username = @options[:username]
-      rewriteroot = @options[:rewriteroot]
 
       if rootistrunk
         # Non-standard repository layout.  The repository root is effectively 'trunk.'
         cmd = "git svn init --prefix=svn/ "
         cmd += "--username=#{username} " unless username.nil?
         cmd += "--no-metadata " unless metadata
-        cmd += "--rewrite-root=#{rewriteroot} " unless rewriteroot.nil?
         if nominimizeurl
           cmd += "--no-minimize-url "
         end
@@ -174,7 +166,6 @@ module Svn2Git
         # Add each component to the command that was passed as an argument.
         cmd += "--username=#{username} " unless username.nil?
         cmd += "--no-metadata " unless metadata
-        cmd += "--rewrite-root=#{rewriteroot} " unless rewriteroot.nil?
         if nominimizeurl
           cmd += "--no-minimize-url "
         end

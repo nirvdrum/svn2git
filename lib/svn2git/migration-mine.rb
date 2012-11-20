@@ -237,11 +237,14 @@ module Svn2Git
         run_command("git config --local user.name \"#{escape_quotes(author)}\"")
         run_command("git config --local user.email \"#{escape_quotes(email)}\"")
 
-        original_git_committer_date = ENV['GIT_COMMITTER_DATE']
-        ENV['GIT_COMMITTER_DATE'] = escape_quotes(date)
-        run_command("git tag -a -m \"#{escape_quotes(subject)}\" \"#{escape_quotes(id)}\" \"#{escape_quotes(tag)}\"")
-        ENV['GIT_COMMITTER_DATE'] = original_git_committer_date
-
+        begin
+          original_git_committer_date = ENV['GIT_COMMITTER_DATE']
+          ENV['GIT_COMMITTER_DATE'] = escape_quotes(date)
+          run_command("git tag -a -m \"#{escape_quotes(subject)}\" \"#{escape_quotes(id)}\" \"#{escape_quotes(tag)}\"")
+        ensure
+          ENV['GIT_COMMITTER_DATE'] = original_git_committer_date
+        end
+        
         run_command("git branch -d -r \"#{escape_quotes(tag)}\"")
       end
 
