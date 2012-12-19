@@ -128,6 +128,10 @@ one of them.
 
         $ svn2git http://svn.example.com/path/to/repo --revision <<starting_revision_number>>:<<ending_revision_number>>
 
+10. Include metadata (git-svn-id) in git logs.
+
+        $ svn2git http://svn.example.com/path/to/repo --metadata
+
 The above will create a git repository in the current directory with the git
 version of the svn repository. Hence, you need to make a directory that you
 want your new git repo to exist in, change into it and then run one of the
@@ -191,6 +195,32 @@ You can turn on verbose logging with the `-v` or `--verbose` flags, like so:
 
     $ svn2git http://svn.yoursite.com/path/to/repo --verbose
 
+Options Reference
+-----------------
+
+    $ svn2git --help
+    Usage: svn2git SVN_URL [options]
+    
+    Specific options:
+            --rebase                     Instead of cloning a new project, rebase an existing one against SVN
+            --username NAME              Username for transports that needs it (http(s), svn)
+            --trunk TRUNK_PATH           Subpath to trunk from repository URL (default: trunk)
+            --branches BRANCHES_PATH     Subpath to branches from repository URL (default: branches)
+            --tags TAGS_PATH             Subpath to tags from repository URL (default: tags)
+            --rootistrunk                Use this if the root level of the repo is equivalent to the trunk and there are no tags or branches
+            --notrunk                    Do not import anything from trunk
+            --nobranches                 Do not try to import any branches
+            --notags                     Do not try to import any tags
+            --no-minimize-url            Accept URLs as-is without attempting to connect to a higher level directory
+            --revision START_REV[:END_REV]
+                                         Start importing from SVN revision START_REV; optionally end at END_REV
+        -m, --metadata                   Include metadata in git logs (git-svn-id)
+            --authors AUTHORS_FILE       Path to file containing svn-to-git authors mapping (default: ~/.svn2git/authors)
+            --exclude REGEX              Specify a Perl regular expression to filter paths when fetching; can be used multiple times
+        -v, --verbose                    Be verbose in logging -- useful for debugging issues
+    
+        -h, --help                       Show this message
+
 FAQ
 ---
 
@@ -220,3 +250,4 @@ FAQ
     that very same tag in the original svn repo. This is only due to the fact
     that the svn tags allow changesets in them, making them not just annotated
     tags.
+
