@@ -158,7 +158,7 @@ module Svn2Git
           cmd += "--no-minimize-url "
         end
         cmd += "--trunk=#{@url}"
-        run_command(cmd)
+        run_command(cmd, true, true)
 
       else
         cmd = "git svn init --prefix=svn/ "
@@ -175,7 +175,7 @@ module Svn2Git
 
         cmd += @url
 
-        run_command(cmd)
+        run_command(cmd, true, true)
       end
 
       run_command("git config --local svn.authorsfile #{authors}") unless authors.nil?
@@ -198,7 +198,7 @@ module Svn2Git
         regex = '^(?:' + regex.join('|') + ')(?:' + exclude.join('|') + ')'
         cmd += "'--ignore-paths=#{regex}'"
       end
-      run_command(cmd)
+      run_command(cmd, true, true)
 
       get_branches
     end
@@ -256,7 +256,7 @@ module Svn2Git
       svn_branches.delete_if { |b| b.strip !~ %r{^svn\/} }
 
       if @options[:rebase]
-         run_command("git svn fetch")
+         run_command("git svn fetch", true, true)
       end
 
       svn_branches.each do |branch|
@@ -290,16 +290,23 @@ module Svn2Git
       run_command("git gc")
     end
 
-    def run_command(cmd, exit_on_error=true)
+    def run_command(cmd, exit_on_error=true, printout_output=false)
       log "Running command: #{cmd}"
 
       ret = ''
 
       cmd = "2>&1 #{cmd}"
       IO.popen(cmd) do |stdout|
-        stdout.each do |line|
-          log line
-          ret << line
+        if printout_output
+          stdout.each_char do |character|
+            $stdout.print character
+            ret << character
+          end
+        else
+          stdout.each do |line|
+            log line
+            ret << line
+          end
         end
       end
 
