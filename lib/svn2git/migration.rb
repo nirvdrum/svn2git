@@ -13,6 +13,9 @@ module Svn2Git
       if @options[:rebase]
          show_help_message('Too many arguments') if args.size > 0
          verify_working_tree_is_clean
+      elsif @options[:rebasebranch]
+         show_help_message('Too many arguments') if args.size > 0
+         verify_working_tree_is_clean
       else
          show_help_message('Missing SVN_URL parameter') if args.empty?
          show_help_message('Too many arguments') if args.size > 1
@@ -23,6 +26,8 @@ module Svn2Git
     def run!
       if @options[:rebase]
         get_branches
+      elsif @options[:rebasebranch]
+        get_rebasebranch
       else
         clone!
       end
@@ -45,6 +50,7 @@ module Svn2Git
       options[:exclude] = []
       options[:revision] = nil
       options[:username] = nil
+      options[:rebasebranch] = false
 
       if File.exists?(File.expand_path(DEFAULT_AUTHORS_FILE))
         options[:authors] = DEFAULT_AUTHORS_FILE
@@ -119,6 +125,10 @@ module Svn2Git
 
         opts.on('-v', '--verbose', 'Be verbose in logging -- useful for debugging issues') do
           options[:verbose] = true
+        end
+
+        opts.on('--rebasebranch REBASEBRANCH', 'Rebase specified branch.') do |rebasebranch|
+          options[:rebasebranch] = rebasebranch
         end
 
         opts.separator ""
@@ -211,6 +221,34 @@ module Svn2Git
 
       # Tags are remote branches that start with "tags/".
       @tags = @remote.find_all { |b| b.strip =~ %r{^svn\/tags\/} }
+
+    end
+
+    def get_rebasebranch
+	  get_branches 
+	  @local = @local.find_all{|l| l == @options[:rebasebranch]}
+	  @remote = @remote.find_all{|r| r.include? @options[:rebasebranch]}
+
+      if @local.count > 1 
+        pp "To many matching branches found (#{@local})."
+        exit 1
+      elsif @local.count == 0
+	    pp "No local branch named \"#{@options[:rebasebranch]}\" found."
+        exit 1
+      end
+
+      if @remote.count > 2 # 1 if remote is not pushed, 2 if its pushed to remote
+        pp "To many matching remotes found (#{@remotes})"
+        exit 1
+      elsif @remote.count == 0
+	    pp "No remote branch named \"#{@options[:rebasebranch]}\" found."
+        exit 1
+      end
+	  pp "Local branches \"#{@local}\" found"
+	  pp "Remote branches \"#{@remote}\" found"
+
+      @tags = [] # We only rebase the specified branch
+
     end
 
     def fix_tags
