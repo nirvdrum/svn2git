@@ -225,8 +225,8 @@ module Svn2Git
         date    = run_command("git log -1 --pretty=format:'%ci' \"#{escape_quotes(tag)}\"").chomp("'").reverse.chomp("'").reverse
         author  = run_command("git log -1 --pretty=format:'%an' \"#{escape_quotes(tag)}\"").chomp("'").reverse.chomp("'").reverse
         email   = run_command("git log -1 --pretty=format:'%ae' \"#{escape_quotes(tag)}\"").chomp("'").reverse.chomp("'").reverse
-        run_command("git config --local user.name \"#{escape_quotes(author)}\"")
-        run_command("git config --local user.email \"#{escape_quotes(email)}\"")
+        run_command("git config user.name \"#{escape_quotes(author)}\"")
+        run_command("git config user.email \"#{escape_quotes(email)}\"")
 
         original_git_committer_date = ENV['GIT_COMMITTER_DATE']
         ENV['GIT_COMMITTER_DATE'] = escape_quotes(date)
