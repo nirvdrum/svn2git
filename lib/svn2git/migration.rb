@@ -118,7 +118,7 @@ module Svn2Git
           options[:exclude] << regex
         end
 
-        opts.on('--localtime', 'Use localtime foro git migration') do
+        opts.on('--localtime', 'Use localtime for git migration') do
           options[:localtime] = true
         end
 
