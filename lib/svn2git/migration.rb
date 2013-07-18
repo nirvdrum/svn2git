@@ -45,6 +45,7 @@ module Svn2Git
       options[:exclude] = []
       options[:revision] = nil
       options[:username] = nil
+      options[:localtime] = nil
 
       if File.exists?(File.expand_path(DEFAULT_AUTHORS_FILE))
         options[:authors] = DEFAULT_AUTHORS_FILE
@@ -117,6 +118,10 @@ module Svn2Git
           options[:exclude] << regex
         end
 
+        opts.on('--localtime', 'Use localtime foro git migration') do
+          options[:localtime] = true
+        end
+
         opts.on('-v', '--verbose', 'Be verbose in logging -- useful for debugging issues') do
           options[:verbose] = true
         end
@@ -148,12 +153,14 @@ module Svn2Git
       exclude = @options[:exclude]
       revision = @options[:revision]
       username = @options[:username]
+      localtime = @options[:localtime]
 
       if rootistrunk
         # Non-standard repository layout.  The repository root is effectively 'trunk.'
         cmd = "git svn init --prefix=svn/ "
         cmd += "--username=#{username} " unless username.nil?
         cmd += "--no-metadata " unless metadata
+        
         if nominimizeurl
           cmd += "--no-minimize-url "
         end
@@ -181,6 +188,7 @@ module Svn2Git
       run_command("git config --local svn.authorsfile #{authors}") unless authors.nil?
 
       cmd = "git svn fetch "
+      cmd += "--localtime" if localtime
       unless revision.nil?
         range = revision.split(":")
         range[1] = "HEAD" unless range[1]
