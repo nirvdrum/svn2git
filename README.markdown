@@ -214,6 +214,7 @@ Options Reference
             --no-minimize-url            Accept URLs as-is without attempting to connect to a higher level directory
             --revision START_REV[:END_REV]
                                          Start importing from SVN revision START_REV; optionally end at END_REV
+            --rewrite-root URL           Set the rewriteRoot option in the [svn-remote] config
         -m, --metadata                   Include metadata in git logs (git-svn-id)
             --authors AUTHORS_FILE       Path to file containing svn-to-git authors mapping (default: ~/.svn2git/authors)
             --exclude REGEX              Specify a Perl regular expression to filter paths when fetching; can be used multiple times
