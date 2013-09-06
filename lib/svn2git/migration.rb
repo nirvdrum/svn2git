@@ -43,6 +43,7 @@ module Svn2Git
       options[:branches] = 'branches'
       options[:tags] = 'tags'
       options[:exclude] = []
+      options[:rewriteroot] = nil
       options[:revision] = nil
       options[:username] = nil
 
@@ -105,6 +106,10 @@ module Svn2Git
           options[:revision] = revision
         end
 
+        opts.on('--rewrite-root URL', 'Set the rewriteRoot option in the [svn-remote] config') do |rewriteroot|
+          options[:rewriteroot] = rewriteroot
+        end
+
         opts.on('-m', '--metadata', 'Include metadata in git logs (git-svn-id)') do
           options[:metadata] = true
         end
@@ -147,6 +152,7 @@ module Svn2Git
       authors = @options[:authors]
       exclude = @options[:exclude]
       revision = @options[:revision]
+      rewriteroot = @options[:rewriteroot]
       username = @options[:username]
 
       if rootistrunk
@@ -157,6 +163,7 @@ module Svn2Git
         if nominimizeurl
           cmd += "--no-minimize-url "
         end
+        cmd += "--rewrite-root=#{rewriteroot} " unless rewriteroot.nil?
         cmd += "--trunk=#{@url}"
         run_command(cmd)
 
@@ -169,6 +176,7 @@ module Svn2Git
         if nominimizeurl
           cmd += "--no-minimize-url "
         end
+        cmd += "--rewrite-root=#{rewriteroot} " unless rewriteroot.nil?
         cmd += "--trunk=#{trunk} " unless trunk.nil?
         cmd += "--tags=#{tags} " unless tags.nil?
         cmd += "--branches=#{branches} " unless branches.nil?
