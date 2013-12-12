@@ -70,7 +70,7 @@ prerequisites would like like:
 
     $ sudo apt-get install git-core git-svn ruby rubygems
 
-Once you have the necessary software your system, you can install svn2git through rubygems, which will add the `svn2git` command to your PATH.    
+Once you have the necessary software on your system, you can install svn2git through rubygems, which will add the `svn2git` command to your PATH.
 
     $ sudo gem install svn2git
 
