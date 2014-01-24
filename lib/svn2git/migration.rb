@@ -196,7 +196,7 @@ module Svn2Git
           regex << "#{branches}[/][^/]+[/]" unless branches.nil?
         end
         regex = '^(?:' + regex.join('|') + ')(?:' + exclude.join('|') + ')'
-        cmd += "'--ignore-paths=#{regex}'"
+        cmd += "\"--ignore-paths=#{regex}\""
       end
       run_command(cmd)
 
