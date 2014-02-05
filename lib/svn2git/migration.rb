@@ -178,7 +178,13 @@ module Svn2Git
         run_command(cmd)
       end
 
-      run_command("git config --local svn.authorsfile #{authors}") unless authors.nil?
+      # --local switch is not available on older versions on "git config"
+      # so test once and don't use it if not available
+      cmd = 'git config --local -l 2>/dev/null'
+      @git_config_cmd = 'git config'
+      @git_config_cmd += ' --local' unless run_command(cmd , false) == ''
+
+      run_command("#{@git_config_cmd} svn.authorsfile #{authors}") unless authors.nil?
 
       cmd = "git svn fetch "
       unless revision.nil?
@@ -215,8 +221,8 @@ module Svn2Git
 
     def fix_tags
       current = {}
-      current['user.name']  = run_command("git config --local --get user.name", false)
-      current['user.email'] = run_command("git config --local --get user.email", false)
+      current['user.name']  = run_command("#{@git_config_cmd} --get user.name", false)
+      current['user.email'] = run_command("#{@git_config_cmd} --get user.email", false)
 
       @tags.each do |tag|
         tag = tag.strip
@@ -225,8 +231,8 @@ module Svn2Git
         date    = run_command("git log -1 --pretty=format:'%ci' \"#{escape_quotes(tag)}\"").chomp("'").reverse.chomp("'").reverse
         author  = run_command("git log -1 --pretty=format:'%an' \"#{escape_quotes(tag)}\"").chomp("'").reverse.chomp("'").reverse
         email   = run_command("git log -1 --pretty=format:'%ae' \"#{escape_quotes(tag)}\"").chomp("'").reverse.chomp("'").reverse
-        run_command("git config --local user.name \"#{escape_quotes(author)}\"")
-        run_command("git config --local user.email \"#{escape_quotes(email)}\"")
+        run_command("#{@git_config_cmd} user.name \"#{escape_quotes(author)}\"")
+        run_command("#{@git_config_cmd} user.email \"#{escape_quotes(email)}\"")
 
         original_git_committer_date = ENV['GIT_COMMITTER_DATE']
         ENV['GIT_COMMITTER_DATE'] = escape_quotes(date)
@@ -243,9 +249,9 @@ module Svn2Git
           # If a line was read, then there was a config value so restore it.
           # Otherwise unset the value because originally there was none.
           if value.strip != ''
-            run_command("git config --local #{name} \"#{value.strip}\"")
+            run_command("#{@git_config_cmd} #{name} \"#{value.strip}\"")
           else
-            run_command("git config --local --unset #{name}")
+            run_command("#{@git_config_cmd} --unset #{name}")
           end
         end
       end
