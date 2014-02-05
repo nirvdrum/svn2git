@@ -178,7 +178,7 @@ module Svn2Git
         run_command(cmd)
       end
 
-      run_command("git config --local svn.authorsfile #{authors}") unless authors.nil?
+      run_command("git config svn.authorsfile #{authors}") unless authors.nil?
 
       cmd = "git svn fetch "
       unless revision.nil?
