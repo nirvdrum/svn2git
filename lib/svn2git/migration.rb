@@ -3,6 +3,7 @@ require 'pp'
 
 module Svn2Git
   DEFAULT_AUTHORS_FILE = "~/.svn2git/authors"
+  DEFAULT_AUTHORS_PROG = "~/.svn2git/authors-prog"
 
   class Migration
 
@@ -54,6 +55,10 @@ module Svn2Git
 
       if File.exists?(File.expand_path(DEFAULT_AUTHORS_FILE))
         options[:authors] = DEFAULT_AUTHORS_FILE
+      end
+
+      if File.exists?(File.expand_path(DEFAULT_AUTHORS_PROG))
+        options[:authorsprog] = DEFAULT_AUTHORS_PROG
       end
 
 
@@ -119,6 +124,10 @@ module Svn2Git
           options[:authors] = authors
         end
 
+        opts.on('--authors-prog AUTHORS_PROG', "Path to script containing svn-to-git authors mapping (default: #{DEFAULT_AUTHORS_PROG})") do |authorsprog|
+          options[:authorsprog] = authorsprog
+        end
+
         opts.on('--exclude REGEX', 'Specify a Perl regular expression to filter paths when fetching; can be used multiple times') do |regex|
           options[:exclude] << regex
         end
@@ -163,6 +172,7 @@ module Svn2Git
       nominimizeurl = @options[:nominimizeurl]
       rootistrunk = @options[:rootistrunk]
       authors = @options[:authors]
+      authorsprog = @options[:authorsprog]
       exclude = @options[:exclude]
       revision = @options[:revision]
       username = @options[:username]
@@ -199,6 +209,7 @@ module Svn2Git
       run_command("#{git_config_command} svn.authorsfile #{authors}") unless authors.nil?
 
       cmd = "git svn fetch "
+      cmd += "--authors-prog=#{authorsprog} " unless authorsprog.nil?
       unless revision.nil?
         range = revision.split(":")
         range[1] = "HEAD" unless range[1]
@@ -233,11 +244,11 @@ module Svn2Git
     end
 
     def get_rebasebranch
-	  get_branches 
+	  get_branches
 	  @local = @local.find_all{|l| l == @options[:rebasebranch]}
 	  @remote = @remote.find_all{|r| r.include? @options[:rebasebranch]}
 
-      if @local.count > 1 
+      if @local.count > 1
         pp "To many matching branches found (#{@local})."
         exit 1
       elsif @local.count == 0
@@ -298,11 +309,14 @@ module Svn2Git
     end
 
     def fix_branches
+      authorsprog = @options[:authorsprog]
       svn_branches = @remote - @tags
       svn_branches.delete_if { |b| b.strip !~ %r{^svn\/} }
 
       if @options[:rebase]
-         run_command("git svn fetch", true, true)
+         cmd = "git svn fetch"
+         cmd += " --authors-prog=#{authorsprog}" unless authorsprog.nil?
+         run_command(cmd, true, true)
       end
 
       svn_branches.each do |branch|
