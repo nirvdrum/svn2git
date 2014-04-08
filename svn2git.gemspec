@@ -34,6 +34,7 @@ Gem::Specification.new do |s|
   s.homepage = "https://github.com/nirvdrum/svn2git"
   s.rubygems_version = "2.2.2"
   s.summary = "A tool for migrating svn projects to git"
+  s.license = "MIT"
 
   if s.respond_to? :specification_version then
     s.specification_version = 4
