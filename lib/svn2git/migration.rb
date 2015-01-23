@@ -53,6 +53,7 @@ module Svn2Git
       options[:revision] = nil
       options[:username] = nil
       options[:rebasebranch] = false
+      options[:localtime] = nil
 
       if File.exists?(File.expand_path(DEFAULT_AUTHORS_FILE))
         options[:authors] = DEFAULT_AUTHORS_FILE
@@ -125,6 +126,10 @@ module Svn2Git
           options[:exclude] << regex
         end
 
+        opts.on('--localtime', 'Use localtime for git commit history timestamps (default is GMT)') do
+          options[:localtime] = true
+        end
+
         opts.on('-v', '--verbose', 'Be verbose in logging -- useful for debugging issues') do
           options[:verbose] = true
         end
@@ -172,6 +177,7 @@ module Svn2Git
       exclude = @options[:exclude]
       revision = @options[:revision]
       username = @options[:username]
+      @localtime = @options[:localtime]
 
       if rootistrunk
         # Non-standard repository layout.  The repository root is effectively 'trunk.'
@@ -205,6 +211,7 @@ module Svn2Git
       run_command("#{git_config_command} svn.authorsfile #{authors}") unless authors.nil?
 
       cmd = "git svn fetch "
+      cmd += "--localtime " if @localtime
       unless revision.nil?
         range = revision.split(":")
         range[1] = "HEAD" unless range[1]
@@ -308,7 +315,9 @@ module Svn2Git
       svn_branches.delete_if { |b| b.strip !~ %r{^svn\/} }
 
       if @options[:rebase]
-         run_command("git svn fetch", true, true)
+         cmd = "git svn fetch"
+         cmd += " --localtime" if @localtime
+         run_command(cmd, true, true)
       end
 
       svn_branches.each do |branch|
