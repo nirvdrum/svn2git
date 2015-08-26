@@ -45,7 +45,6 @@ module Svn2Git
       options[:verbose] = false
       options[:metadata] = false
       options[:nominimizeurl] = false
-      options[:rootistrunk] = false
       options[:trunk] = 'trunk'
       options[:branches] = 'branches'
       options[:tags] = 'tags'
@@ -92,7 +91,6 @@ module Svn2Git
         end
 
         opts.on('--rootistrunk', 'Use this if the root level of the repo is equivalent to the trunk and there are no tags or branches') do
-          options[:rootistrunk] = true
           options[:trunk] = nil
           options[:branches] = nil
           options[:tags] = nil
@@ -172,7 +170,6 @@ module Svn2Git
       tags = @options[:tags]
       metadata = @options[:metadata]
       nominimizeurl = @options[:nominimizeurl]
-      rootistrunk = @options[:rootistrunk]
       authors = @options[:authors]
       exclude = @options[:exclude]
       revision = @options[:revision]
@@ -222,11 +219,9 @@ module Svn2Git
         # Add exclude paths to the command line; some versions of git support
         # this for fetch only, later also for init.
         regex = []
-        unless rootistrunk
-          regex << "#{trunk}[/]" unless trunk.nil?
-          regex << "#{tags}[/][^/]+[/]" unless tags.nil?
-          regex << "#{branches}[/][^/]+[/]" unless branches.nil?
-        end
+        regex << "#{trunk}[/][^/]+[/]" unless trunk.nil? || trunk == '/'
+        regex << "#{tags}[/][^/]+[/]" unless tags.nil?
+        regex << "#{branches}[/][^/]+[/]" unless branches.nil?
         regex = '^(?:' + regex.join('|') + ')(?:' + exclude.join('|') + ')'
         cmd += "'--ignore-paths=#{regex}'"
       end
