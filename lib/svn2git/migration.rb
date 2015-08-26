@@ -53,6 +53,7 @@ module Svn2Git
       options[:username] = nil
       options[:password] = nil
       options[:rebasebranch] = false
+      options[:shared] = nil
 
       if File.exists?(File.expand_path(DEFAULT_AUTHORS_FILE))
         options[:authors] = DEFAULT_AUTHORS_FILE
@@ -136,6 +137,16 @@ module Svn2Git
           options[:rebasebranch] = rebasebranch
         end
 
+        opts.on('--shared=[SHARED]', 'Set --shared option for git init') do |shared|
+          if shared
+            options[:shared] = "=#{shared}"
+          else
+            # git svn init seems to require an option, otherwise we'd leave
+            # this blank
+            options[:shared] = '=group'
+          end
+        end
+
         opts.separator ""
 
         # No argument, shows at tail.  This will print an options summary.
@@ -175,37 +186,25 @@ module Svn2Git
       revision = @options[:revision]
       username = @options[:username]
       password = @options[:password]
+      shared = @options[:shared]
 
-      if rootistrunk
-        # Non-standard repository layout.  The repository root is effectively 'trunk.'
-        cmd = "git svn init --prefix=svn/ "
-        cmd += "--username=#{username} " unless username.nil?
-        cmd += "--password=#{password} " unless password.nil?
-        cmd += "--no-metadata " unless metadata
-        if nominimizeurl
-          cmd += "--no-minimize-url "
-        end
-        cmd += @url
-        run_command(cmd, true, true)
+      cmd = "git svn init --prefix=svn/ "
 
-      else
-        cmd = "git svn init --prefix=svn/ "
-
-        # Add each component to the command that was passed as an argument.
-        cmd += "--username=#{username} " unless username.nil?
-        cmd += "--password=#{password} " unless password.nil?
-        cmd += "--no-metadata " unless metadata
-        if nominimizeurl
-          cmd += "--no-minimize-url "
-        end
-        cmd += "--trunk=#{trunk} " unless trunk.nil?
-        cmd += "--tags=#{tags} " unless tags.nil?
-        cmd += "--branches=#{branches} " unless branches.nil?
-
-        cmd += @url
-
-        run_command(cmd, true, true)
+      # Add each component to the command that was passed as an argument.
+      cmd += "--username=#{username} " unless username.nil?
+      cmd += "--password=#{password} " unless password.nil?
+      cmd += "--no-metadata " unless metadata
+      if nominimizeurl
+        cmd += "--no-minimize-url "
       end
+      cmd += "--trunk=#{trunk} " unless trunk.nil?
+      cmd += "--tags=#{tags} " unless tags.nil?
+      cmd += "--branches=#{branches} " unless branches.nil?
+      cmd += "--shared#{shared} " unless shared.nil?
+
+      cmd += @url
+
+      run_command(cmd, true, true)
 
       run_command("#{git_config_command} svn.authorsfile #{authors}") unless authors.nil?
 
