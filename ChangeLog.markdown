@@ -15,7 +15,7 @@
     command failed:
     git checkout "<some_branch_here>"
 
-  Notice localized message of git output. You can fix if with new key `--force-en-us-to-git`.
+  Notice localized message of git output. You can fix it with new key `--force-en-us-to-git`.
 
   Also there was changes in git, which triggers `git gc --auto` after some point of modifications to local git repo, so now svn2git modifies `gc.auto` option, sets it to `0` to disable automatic packing of loose objects.
   This fixes fail at the end of svn2git script, where it calls `git gc` explicitly:
