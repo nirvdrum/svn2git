@@ -18,14 +18,14 @@
   Notice localized message of git output. You can fix it with new key `--force-en-us-to-git`.
 
   Also there was changes in git, which triggers `git gc --auto` after some point of modifications to local git repo, so now svn2git modifies `gc.auto` option, sets it to `0` to disable automatic packing of loose objects.
-  This fixes fail at the end of svn2git script, where it calls `git gc` explicitly:
+  This fixes failing at the end of svn2git script, where it calls `git gc` explicitly:
 
     Running command: git gc
     fatal: gc is already running on machine '<machine_name>' pid <pid> (use --force if not)
     command failed:
     git gc
 
-  For me, it `gc ---auto` starts just after `fetch`, and while svn2git finishes it's work (really fast) it stays running. When svn2git starts `git gc` explicitly, this new process conflicts with already running process, causing an error message.
+  For me, `gc ---auto` starts just after `fetch`, and while svn2git finishes it's work (really fast) it stays running. When svn2git starts `git gc` explicitly, this new process conflicts with already running process, causing an error message.
 
 
 # 2.3.2 - 2014-06-08
