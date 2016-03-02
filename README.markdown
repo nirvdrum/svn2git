@@ -77,10 +77,9 @@ Some hints before you start
 In Ubuntu 14.04 you have to install latest git and subversion versions to successfully done conversion.
 This fixes "error: git-svn died of signal 11" issue.
 
-
 Upgrade can be done using PPAs:
-https://launchpad.net/~dominik-stadler/+archive/ubuntu/subversion-1.9
-https://launchpad.net/~git-core/+archive/ubuntu/ppa
+[https://launchpad.net/~dominik-stadler/+archive/ubuntu/subversion-1.9](https://launchpad.net/~dominik-stadler/+archive/ubuntu/subversion-1.9)
+[https://launchpad.net/~git-core/+archive/ubuntu/ppa](https://launchpad.net/~git-core/+archive/ubuntu/ppa)
 
 To add each ppa use commands:
 
