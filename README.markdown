@@ -72,6 +72,55 @@ Once you have the necessary software on your system, you can install svn2git thr
 
     $ sudo gem install svn2git
 
+Some hints before you start
+-----
+In Ubuntu 14.04 you have to install latest git and subversion versions to successfully done conversion.
+This fixes "error: git-svn died of signal 11" issue.
+
+Upgrade can be done using PPAs:
+[https://launchpad.net/~dominik-stadler/+archive/ubuntu/subversion-1.9](https://launchpad.net/~dominik-stadler/+archive/ubuntu/subversion-1.9)
+[https://launchpad.net/~git-core/+archive/ubuntu/ppa](https://launchpad.net/~git-core/+archive/ubuntu/ppa)
+
+To add each ppa use commands:
+
+    $ sudo add-apt-repository ppa:dominik-stadler/subversion-1.9
+    $ sudo add-apt-repository ppa:git-core/ppa
+
+or add -E to sudo if you are using proxy to preserve environment variables with proxy information
+
+    $ sudo -E add-apt-repository ppa:dominik-stadler/subversion-1.9
+    $ sudo -E add-apt-repository ppa:git-core/ppa
+
+After that update repository cache and upgrade packages
+
+    $ sudo apt-get update
+    $ sudo apt-get install git-core git-svn subversion
+
+This will upgrade git, git-svn and subversion to latest version (as for 2016-03-02)
+
+Also if you get this kind of error
+
+    Running command: git branch --track "<some_branch_here>" "remotes/svn/<some_branch_here>"
+    fatal: Не удалось настроить информацию отслеживания; стартовая точка «remotes/svn/<some_branch_here>» не является веткой.
+    ********************************************************************
+    svn2git warning: Tracking remote SVN branches is deprecated.
+    In a future release local branches will be created without tracking.
+    If you must resync your branches, run: svn2git --rebase
+    ********************************************************************
+    Running command: git checkout "<some_branch_here>"
+    error: pathspec '<some_branch_here>' did not match any file(s) known to git.
+    command failed:
+    git checkout "<some_branch_here>"
+
+Notice localized message of git. As svn2git script analyzes git answer here, force English messages from git, using new key `--force-en-us-to-git` (testing feature).
+This sets LANGUAGE environment variable to "en_US" for svn2git and its child processes.
+
+Also if you have to provide a password to subversion repository and stuck on
+
+    Authentication realm: <http://your_subversion_repository.domain> CollabNet Subversion Repository
+    Password for '<your_login>':
+
+then try to invoke in console `svn co` first to authorize at subversion repo, it will cache your visit, and then rerun svn2git command.
 
 Usage
 -----
@@ -143,6 +192,16 @@ specified trunk=foo branches=bar and tags=foobar it would be referencing
 http://svn.example.com/path/to/repo/foo as your trunk, and so on. However, in
 case 4 it references the root of the repo as trunk.
 
+### Tags Notice ###
+
+Notice, that if you want to push tags also to git repo, you need to run not only
+
+    git push origin --all
+
+but also
+
+    git push origin --tags
+
 ### Repository Updates ###
 
 As of svn2git 2.0 there is a new feature to pull in the latest changes from SVN into your
@@ -206,7 +265,7 @@ Options Reference
     Specific options:
             --rebase                     Instead of cloning a new project, rebase an existing one against SVN
             --username NAME              Username for transports that needs it (http(s), svn)
-            --password PASS              Password for transports that needs it (http(s), svn)
+            --password PASSWORD              Password for transports that needs it (http(s), svn)
             --trunk TRUNK_PATH           Subpath to trunk from repository URL (default: trunk)
             --branches BRANCHES_PATH     Subpath to branches from repository URL (default: branches)
             --tags TAGS_PATH             Subpath to tags from repository URL (default: tags)
@@ -221,6 +280,8 @@ Options Reference
             --authors AUTHORS_FILE       Path to file containing svn-to-git authors mapping (default: ~/.svn2git/authors)
             --exclude REGEX              Specify a Perl regular expression to filter paths when fetching; can be used multiple times
         -v, --verbose                    Be verbose in logging -- useful for debugging issues
+            --rebasebranch REBASEBRANCH  Rebase specified branch.
+            --force-en-us-to-git         Force en_US locale to be used by git commands, called by this script.
     
         -h, --help                       Show this message
 
