@@ -210,6 +210,7 @@ Options Reference
             --trunk TRUNK_PATH           Subpath to trunk from repository URL (default: trunk)
             --branches BRANCHES_PATH     Subpath to branches from repository URL (default: branches)
             --tags TAGS_PATH             Subpath to tags from repository URL (default: tags)
+            --tagparents                 Add tags without changes to its parent commit
             --rootistrunk                Use this if the root level of the repo is equivalent to the trunk and there are no tags or branches
             --notrunk                    Do not import anything from trunk
             --nobranches                 Do not try to import any branches
@@ -253,4 +254,7 @@ FAQ
     that very same tag in the original svn repo. This is only due to the fact
     that the svn tags allow changesets in them, making them not just annotated
     tags.
+    
+    In case your tags do not contain any changes, you can use `--tagparents`
+    to add the annotated tags to its parent.
 

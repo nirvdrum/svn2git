@@ -49,6 +49,7 @@ module Svn2Git
       options[:trunk] = 'trunk'
       options[:branches] = 'branches'
       options[:tags] = 'tags'
+      options[:tagparents] = false
       options[:exclude] = []
       options[:revision] = nil
       options[:username] = nil
@@ -89,6 +90,10 @@ module Svn2Git
 
         opts.on('--tags TAGS_PATH', 'Subpath to tags from repository URL (default: tags)') do |tags|
           options[:tags] = tags
+        end
+
+        opts.on('--tagparents', 'Add tags without changes to its parent commit') do
+          options[:tagparents] = true
         end
 
         opts.on('--rootistrunk', 'Use this if the root level of the repo is equivalent to the trunk and there are no tags or branches') do
@@ -285,12 +290,17 @@ module Svn2Git
         date    = run_command("git log -1 --pretty=format:'%ci' \"#{escape_quotes(tag)}\"").chomp("'").reverse.chomp("'").reverse
         author  = run_command("git log -1 --pretty=format:'%an' \"#{escape_quotes(tag)}\"").chomp("'").reverse.chomp("'").reverse
         email   = run_command("git log -1 --pretty=format:'%ae' \"#{escape_quotes(tag)}\"").chomp("'").reverse.chomp("'").reverse
+        diff    = run_command("git diff --shortstat \"#{escape_quotes(tag)}~1\" \"#{escape_quotes(tag)}\"")
         run_command("#{git_config_command} user.name \"#{escape_quotes(author)}\"")
         run_command("#{git_config_command} user.email \"#{escape_quotes(email)}\"")
 
         original_git_committer_date = ENV['GIT_COMMITTER_DATE']
         ENV['GIT_COMMITTER_DATE'] = escape_quotes(date)
-        run_command("git tag -a -m \"#{escape_quotes(subject)}\" \"#{escape_quotes(id)}\" \"#{escape_quotes(tag)}\"")
+        if diff.empty? and @options[:tagparents]
+          run_command("git tag -a -m \"#{escape_quotes(subject)}\" \"#{escape_quotes(id)}\" \"#{escape_quotes(tag)}~1\"")
+        else
+          run_command("git tag -a -m \"#{escape_quotes(subject)}\" \"#{escape_quotes(id)}\" \"#{escape_quotes(tag)}\"")
+        end
         ENV['GIT_COMMITTER_DATE'] = original_git_committer_date
 
         run_command("git branch -d -r \"#{escape_quotes(tag)}\"")
