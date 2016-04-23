@@ -45,6 +45,7 @@ module Svn2Git
       options[:verbose] = false
       options[:metadata] = false
       options[:nominimizeurl] = false
+      options[:preserveemptydirs] = false
       options[:rootistrunk] = false
       options[:trunk] = 'trunk'
       options[:branches] = 'branches'
@@ -114,6 +115,10 @@ module Svn2Git
           options[:nominimizeurl] = true
         end
 
+        opts.on('--preserve-empty-dirs', 'Add a placeholder file so empty folders are not pruned during import') do
+          options[:preserveemptydirs] = true
+        end
+
         opts.on('--revision START_REV[:END_REV]', 'Start importing from SVN revision START_REV; optionally end at END_REV') do |revision|
           options[:revision] = revision
         end
@@ -172,6 +177,7 @@ module Svn2Git
       tags = @options[:tags]
       metadata = @options[:metadata]
       nominimizeurl = @options[:nominimizeurl]
+      preserveemptydirs = @options[:preserveemptydirs]
       rootistrunk = @options[:rootistrunk]
       authors = @options[:authors]
       exclude = @options[:exclude]
@@ -188,6 +194,9 @@ module Svn2Git
         if nominimizeurl
           cmd += "--no-minimize-url "
         end
+        if preserveemptydirs
+          cmd += "--preserve-empty-dirs "
+        end
         cmd += "--trunk=#{@url}"
         run_command(cmd, true, true)
 
@@ -200,6 +209,9 @@ module Svn2Git
         cmd += "--no-metadata " unless metadata
         if nominimizeurl
           cmd += "--no-minimize-url "
+        end
+        if preserveemptydirs
+          cmd += "--preserve-empty-dirs "
         end
         cmd += "--trunk=#{trunk} " unless trunk.nil?
         cmd += "--tags=#{tags} " unless tags.nil?

@@ -215,6 +215,7 @@ Options Reference
             --nobranches                 Do not try to import any branches
             --notags                     Do not try to import any tags
             --no-minimize-url            Accept URLs as-is without attempting to connect to a higher level directory
+            --preserve-empty-dirs        Add a placeholder file so empty folders are not pruned during import
             --revision START_REV[:END_REV]
                                          Start importing from SVN revision START_REV; optionally end at END_REV
         -m, --metadata                   Include metadata in git logs (git-svn-id)
