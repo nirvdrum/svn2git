@@ -47,8 +47,8 @@ module Svn2Git
       options[:nominimizeurl] = false
       options[:rootistrunk] = false
       options[:trunk] = 'trunk'
-      options[:branches] = 'branches'
-      options[:tags] = 'tags'
+      options[:branches] = []
+      options[:tags] = []
       options[:exclude] = []
       options[:revision] = nil
       options[:username] = nil
@@ -84,11 +84,11 @@ module Svn2Git
         end
 
         opts.on('--branches BRANCHES_PATH', 'Subpath to branches from repository URL (default: branches)') do |branches|
-          options[:branches] = branches
+          options[:branches] << branches
         end
 
         opts.on('--tags TAGS_PATH', 'Subpath to tags from repository URL (default: tags)') do |tags|
-          options[:tags] = tags
+          options[:tags] << tags
         end
 
         opts.on('--rootistrunk', 'Use this if the root level of the repo is equivalent to the trunk and there are no tags or branches') do
@@ -149,6 +149,15 @@ module Svn2Git
       end
 
       @opts.parse! args
+
+      # Set default branches and tags if not explicitely configured
+      if ! options[:branches].nil? && options[:branches].length == 0 
+        options[:branches] << 'branches'
+      end
+      if ! options[:tags].nil? && options[:tags].length == 0 
+        options[:tags] << 'tags'
+      end
+
       options
     end
 
@@ -202,8 +211,12 @@ module Svn2Git
           cmd += "--no-minimize-url "
         end
         cmd += "--trunk=#{trunk} " unless trunk.nil?
-        cmd += "--tags=#{tags} " unless tags.nil?
-        cmd += "--branches=#{branches} " unless branches.nil?
+        tags.each do |tags|
+          cmd += "--tags=#{tags} "
+        end unless tags.nil?
+        branches.each do |branches|
+          cmd += "--branches=#{branches} "
+        end unless branches.nil?
 
         cmd += @url
 
