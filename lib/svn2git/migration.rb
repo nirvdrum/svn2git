@@ -45,7 +45,6 @@ module Svn2Git
       options[:verbose] = false
       options[:metadata] = false
       options[:nominimizeurl] = false
-      options[:rootistrunk] = false
       options[:trunk] = 'trunk'
       options[:branches] = 'branches'
       options[:tags] = 'tags'
@@ -54,6 +53,7 @@ module Svn2Git
       options[:username] = nil
       options[:password] = nil
       options[:rebasebranch] = false
+      options[:shared] = nil
 
       if File.exists?(File.expand_path(DEFAULT_AUTHORS_FILE))
         options[:authors] = DEFAULT_AUTHORS_FILE
@@ -92,7 +92,6 @@ module Svn2Git
         end
 
         opts.on('--rootistrunk', 'Use this if the root level of the repo is equivalent to the trunk and there are no tags or branches') do
-          options[:rootistrunk] = true
           options[:trunk] = nil
           options[:branches] = nil
           options[:tags] = nil
@@ -138,6 +137,16 @@ module Svn2Git
           options[:rebasebranch] = rebasebranch
         end
 
+        opts.on('--shared=[SHARED]', 'Set --shared option for git init') do |shared|
+          if shared
+            options[:shared] = "=#{shared}"
+          else
+            # git svn init seems to require an option, otherwise we'd leave
+            # this blank
+            options[:shared] = '=group'
+          end
+        end
+
         opts.separator ""
 
         # No argument, shows at tail.  This will print an options summary.
@@ -172,43 +181,30 @@ module Svn2Git
       tags = @options[:tags]
       metadata = @options[:metadata]
       nominimizeurl = @options[:nominimizeurl]
-      rootistrunk = @options[:rootistrunk]
       authors = @options[:authors]
       exclude = @options[:exclude]
       revision = @options[:revision]
       username = @options[:username]
       password = @options[:password]
+      shared = @options[:shared]
 
-      if rootistrunk
-        # Non-standard repository layout.  The repository root is effectively 'trunk.'
-        cmd = "git svn init --prefix=svn/ "
-        cmd += "--username=#{username} " unless username.nil?
-        cmd += "--password=#{password} " unless password.nil?
-        cmd += "--no-metadata " unless metadata
-        if nominimizeurl
-          cmd += "--no-minimize-url "
-        end
-        cmd += "--trunk=#{@url}"
-        run_command(cmd, true, true)
+      cmd = "git svn init --prefix=svn/ "
 
-      else
-        cmd = "git svn init --prefix=svn/ "
-
-        # Add each component to the command that was passed as an argument.
-        cmd += "--username=#{username} " unless username.nil?
-        cmd += "--password=#{password} " unless password.nil?
-        cmd += "--no-metadata " unless metadata
-        if nominimizeurl
-          cmd += "--no-minimize-url "
-        end
-        cmd += "--trunk=#{trunk} " unless trunk.nil?
-        cmd += "--tags=#{tags} " unless tags.nil?
-        cmd += "--branches=#{branches} " unless branches.nil?
-
-        cmd += @url
-
-        run_command(cmd, true, true)
+      # Add each component to the command that was passed as an argument.
+      cmd += "--username=#{username} " unless username.nil?
+      cmd += "--password=#{password} " unless password.nil?
+      cmd += "--no-metadata " unless metadata
+      if nominimizeurl
+        cmd += "--no-minimize-url "
       end
+      cmd += "--trunk=#{trunk} " unless trunk.nil?
+      cmd += "--tags=#{tags} " unless tags.nil?
+      cmd += "--branches=#{branches} " unless branches.nil?
+      cmd += "--shared#{shared} " unless shared.nil?
+
+      cmd += @url
+
+      run_command(cmd, true, true)
 
       run_command("#{git_config_command} svn.authorsfile #{authors}") unless authors.nil?
 
@@ -222,11 +218,9 @@ module Svn2Git
         # Add exclude paths to the command line; some versions of git support
         # this for fetch only, later also for init.
         regex = []
-        unless rootistrunk
-          regex << "#{trunk}[/]" unless trunk.nil?
-          regex << "#{tags}[/][^/]+[/]" unless tags.nil?
-          regex << "#{branches}[/][^/]+[/]" unless branches.nil?
-        end
+        regex << "#{trunk}[/][^/]+[/]" unless trunk.nil? || trunk == '/'
+        regex << "#{tags}[/][^/]+[/]" unless tags.nil?
+        regex << "#{branches}[/][^/]+[/]" unless branches.nil?
         regex = '^(?:' + regex.join('|') + ')(?:' + exclude.join('|') + ')'
         cmd += "--ignore-paths='#{regex}' "
       end
