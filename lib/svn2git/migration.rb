@@ -33,9 +33,9 @@ module Svn2Git
       else
         clone!
       end
-      fix_branches
-      fix_tags
-      fix_trunk
+      fix_branches unless @options[:branches].nil?
+      fix_tags unless @options[:tags].nil?
+      fix_trunk unless @options[:trunk].nil?
       optimize_repos
     end
 
