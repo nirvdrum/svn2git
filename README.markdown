@@ -68,7 +68,7 @@ Make sure you have git, git-svn, and ruby installed.  svn2git is a ruby wrapper 
 
     $ sudo apt-get install git-core git-svn ruby
 
-Once you have the necessary software on your system, you can install svn2git through rubygems, which will add the `svn2git` command to your PATH.    
+Once you have the necessary software on your system, you can install svn2git through rubygems, which will add the `svn2git` command to your PATH.
 
     $ sudo gem install svn2git
 
@@ -202,7 +202,7 @@ Options Reference
 
     $ svn2git --help
     Usage: svn2git SVN_URL [options]
-    
+
     Specific options:
             --rebase                     Instead of cloning a new project, rebase an existing one against SVN
             --username NAME              Username for transports that needs it (http(s), svn)
@@ -219,9 +219,10 @@ Options Reference
                                          Start importing from SVN revision START_REV; optionally end at END_REV
         -m, --metadata                   Include metadata in git logs (git-svn-id)
             --authors AUTHORS_FILE       Path to file containing svn-to-git authors mapping (default: ~/.svn2git/authors)
+            --authors-prog AUTHORS_PROG  Path to script containing svn-to-git authors mapping (default: ~/.svn2git/authors-prog)
             --exclude REGEX              Specify a Perl regular expression to filter paths when fetching; can be used multiple times
         -v, --verbose                    Be verbose in logging -- useful for debugging issues
-    
+
         -h, --help                       Show this message
 
 FAQ
@@ -234,9 +235,9 @@ FAQ
     Those commits are the first (head) commit of branch in svn that is
     associated with that tag. If you want to see all the branches and tags
     and their relationships in gitk you can run the following: gitk --all
-    
+
     For further details please refer to FAQ #2.
-    
+
 2. Why don't you reference the parent of the tag commits instead?
 
     In svn you are forced to create what are known in git as annotated tags.
@@ -246,7 +247,7 @@ FAQ
     treated as an annotated tag. Hence, for there to be a true 1-to-1 mapping
     between git and svn we have to transfer over the svn commit which acts as
     an annotated tag and then tag that commit in git using an annotated tag.
-    
+
     If we were to reference the parent of this svn tagged commit there could
     potentially be situations where a developer would checkout a tag in git
     and the resulting code base would be different than if they checked out
