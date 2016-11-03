@@ -50,6 +50,7 @@ module Svn2Git
       options[:branches] = []
       options[:tags] = []
       options[:exclude] = []
+      options[:include] = []
       options[:revision] = nil
       options[:username] = nil
       options[:password] = nil
@@ -130,6 +131,10 @@ module Svn2Git
           options[:exclude] << regex
         end
 
+        opts.on('--include REGEX', 'Specify a Perl regular expression to filter paths when fetching; can be used multiple times') do |regex|
+          options[:include] << regex
+        end
+
         opts.on('-v', '--verbose', 'Be verbose in logging -- useful for debugging issues') do
           options[:verbose] = true
         end
@@ -175,6 +180,7 @@ module Svn2Git
       rootistrunk = @options[:rootistrunk]
       authors = @options[:authors]
       exclude = @options[:exclude]
+      include = @options[:include]
       revision = @options[:revision]
       username = @options[:username]
       password = @options[:password]
@@ -243,6 +249,18 @@ module Svn2Git
         end
         regex = '^(?:' + regex.join('|') + ')(?:' + exclude.join('|') + ')'
         cmd += "--ignore-paths='#{regex}' "
+      end
+      unless include.empty?
+        # Add include paths to the command line; some versions of git support
+        # this for fetch only, later also for init.
+        regex = []
+        unless rootistrunk
+          regex << "#{trunk}[/]" unless trunk.nil?
+          regex << "#{tags}[/][^/]+[/]" unless tags.nil?
+          regex << "#{branches}[/][^/]+[/]" unless branches.nil?
+        end
+        regex = '^(?:' + regex.join('|') + ')(?:' + include.join('|') + ')'
+        cmd += "'--include-paths=#{regex}'"
       end
       run_command(cmd, true, true)
 
