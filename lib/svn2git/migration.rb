@@ -371,7 +371,7 @@ module Svn2Git
 
             @legacy_svn_branch_tracking_message_displayed = true
 
-            run_command("git checkout \"#{branch}\"")
+            run_command("git checkout -b \"#{branch}\" \"remotes/svn/#{branch}\"")
           end
         end
       end
