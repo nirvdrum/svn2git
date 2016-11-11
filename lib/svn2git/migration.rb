@@ -12,6 +12,7 @@ module Svn2Git
 
     def initialize(args)
       @options = parse(args)
+      run_command("which git &> /dev/null && echo 'git is installed.' || { echo 'git does not seem to be installed'; exit 1; } ",true,true)
       if @options[:rebase]
          show_help_message('Too many arguments') if args.size > 0
          verify_working_tree_is_clean
@@ -261,11 +262,11 @@ module Svn2Git
     end
 
     def get_rebasebranch
-	  get_branches 
+	  get_branches
 	  @local = @local.find_all{|l| l == @options[:rebasebranch]}
 	  @remote = @remote.find_all{|r| r.include? @options[:rebasebranch]}
 
-      if @local.count > 1 
+      if @local.count > 1
         pp "To many matching branches found (#{@local})."
         exit 1
       elsif @local.count == 0
