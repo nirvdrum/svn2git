@@ -357,7 +357,7 @@ module Svn2Git
           # Our --rebase option obviates the need for read-only tracked remotes, however.  So, we'll
           # deprecate the old option, informing those relying on the old behavior that they should
           # use the newer --rebase otion.
-          if status =~ /Cannot setup tracking information/m
+          if status =~ /fatal/m
             @cannot_setup_tracking_information = true
             run_command(Svn2Git::Migration.checkout_svn_branch(branch))
           else
