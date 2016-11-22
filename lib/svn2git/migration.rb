@@ -154,6 +154,7 @@ module Svn2Git
 
     def self.escape_quotes(str)
       str.gsub(/'|"/) { |c| "\\#{c}" }
+         .gsub(/\$/)  { |c| '\\$' }
     end
 
     def escape_quotes(str)
