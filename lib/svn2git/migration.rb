@@ -219,7 +219,7 @@ module Svn2Git
           end
         end
 
-        cmd += @url
+        cmd += '"' + @url + '"'
 
         run_command(cmd, true, true)
       end
