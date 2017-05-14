@@ -267,8 +267,8 @@ Options Reference
             --username NAME              Username for transports that needs it (http(s), svn)
             --password PASSWORD              Password for transports that needs it (http(s), svn)
             --trunk TRUNK_PATH           Subpath to trunk from repository URL (default: trunk)
-            --branches BRANCHES_PATH     Subpath to branches from repository URL (default: branches)
-            --tags TAGS_PATH             Subpath to tags from repository URL (default: tags)
+            --branches BRANCHES_PATH     Subpath to branches from repository URL (default: branches); can be used multiple times
+            --tags TAGS_PATH             Subpath to tags from repository URL (default: tags); can be used multiple times
             --rootistrunk                Use this if the root level of the repo is equivalent to the trunk and there are no tags or branches
             --notrunk                    Do not import anything from trunk
             --nobranches                 Do not try to import any branches

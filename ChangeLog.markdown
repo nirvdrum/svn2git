@@ -1,3 +1,13 @@
+# 2.4.0 - 2016-10-30
+
+  This release introduces the ability to supply a password for SVN repositories that can't authenticate by other means.
+  It also adds the ability to specify the '--branches' and '--tags' arguments multiple times to better support those with
+  more complicated SVN repository layouts.
+
+  * Added support for the '--password' option for authentication (thanks edpbx).
+  * Added the ability to specify the '--branches' and '--tags' arguments multiple times (thanks pdf).
+  * Fixed a problem with processing of the '--exclude' argument (improper quoting internally) (thanks pdf).
+
 # 2.3.3 - 2016-03-02
   This is a bugfix release. It provides fix for git localized messages issue, and also fixes "gc is already running" message.
 
@@ -26,7 +36,6 @@
     git gc
 
   For me, `gc ---auto` starts just after `fetch`, and while svn2git finishes it's work (really fast) it stays running. When svn2git starts `git gc` explicitly, this new process conflicts with already running process, causing an error message.
-
 
 # 2.3.2 - 2014-06-08
 
