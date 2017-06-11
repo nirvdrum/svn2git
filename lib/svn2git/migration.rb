@@ -51,6 +51,7 @@ module Svn2Git
       options[:tags] = []
       options[:exclude] = []
       options[:revision] = nil
+      options[:stdlayout] = nil
       options[:username] = nil
       options[:password] = nil
       options[:rebasebranch] = false
@@ -96,6 +97,15 @@ module Svn2Git
           options[:trunk] = nil
           options[:branches] = nil
           options[:tags] = nil
+          options[:stdlayout] = false
+        end
+
+        opts.on('--stdlayout', 'Use this when the standard layout applies to trunk, tags, and branches') do
+          options[:stdlayout] = true
+          options[:trunk] = nil
+          options[:branches] = nil
+          options[:tags] = nil
+          options[:rootistrunk] = false
         end
 
         opts.on('--notrunk', 'Do not import anything from trunk') do
@@ -173,6 +183,7 @@ module Svn2Git
       metadata = @options[:metadata]
       nominimizeurl = @options[:nominimizeurl]
       rootistrunk = @options[:rootistrunk]
+      stdlayout = @options[:stdlayout]
       authors = @options[:authors]
       exclude = @options[:exclude]
       revision = @options[:revision]
@@ -200,6 +211,9 @@ module Svn2Git
         cmd += "--no-metadata " unless metadata
         if nominimizeurl
           cmd += "--no-minimize-url "
+        end
+        if stdlayout
+          cmd += "--stdlayout "
         end
         cmd += "--trunk='#{trunk}' " unless trunk.nil?
         unless tags.nil?
