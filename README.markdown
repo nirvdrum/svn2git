@@ -105,7 +105,7 @@ equivalent to the trunk and there are no tags or branches.
         $ svn2git http://svn.example.com/path/to/repo --rootistrunk
 
 5. The svn repo is in the standard layout but you want to exclude the massive
-doc directory and the backup files you once accidently added.
+doc directory and the backup files you once accidentally added.
 
         $ svn2git http://svn.example.com/path/to/repo --exclude doc --exclude '.*~$'
 
