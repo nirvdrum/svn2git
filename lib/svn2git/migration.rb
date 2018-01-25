@@ -47,8 +47,8 @@ module Svn2Git
       options[:nominimizeurl] = false
       options[:rootistrunk] = false
       options[:trunk] = 'trunk'
-      options[:branches] = []
-      options[:tags] = []
+      options[:branches] = 'branches'
+      options[:tags] = 'tags'
       options[:exclude] = []
       options[:revision] = nil
       options[:username] = nil
@@ -83,12 +83,12 @@ module Svn2Git
           options[:trunk] = trunk
         end
 
-        opts.on('--branches BRANCHES_PATH', 'Subpath to branches from repository URL (default: branches); can be used multiple times') do |branches|
-          options[:branches] << branches
+        opts.on('--branches BRANCHES_PATH', 'Subpath to branches from repository URL (default: branches)') do |branches|
+          options[:branches] = branches
         end
 
-        opts.on('--tags TAGS_PATH', 'Subpath to tags from repository URL (default: tags); can be used multiple times') do |tags|
-          options[:tags] << tags
+        opts.on('--tags TAGS_PATH', 'Subpath to tags from repository URL (default: tags)') do |tags|
+          options[:tags] = tags
         end
 
         opts.on('--rootistrunk', 'Use this if the root level of the repo is equivalent to the trunk and there are no tags or branches') do
@@ -182,42 +182,28 @@ module Svn2Git
       if rootistrunk
         # Non-standard repository layout.  The repository root is effectively 'trunk.'
         cmd = "git svn init --prefix=svn/ "
-        cmd += "--username='#{username}' " unless username.nil?
-        cmd += "--password='#{password}' " unless password.nil?
+        cmd += "--username=#{username} " unless username.nil?
+        cmd += "--password=#{password} " unless password.nil?
         cmd += "--no-metadata " unless metadata
         if nominimizeurl
           cmd += "--no-minimize-url "
         end
-        cmd += "--trunk='#{@url}'"
+        cmd += "--trunk=#{@url}"
         run_command(cmd, true, true)
 
       else
         cmd = "git svn init --prefix=svn/ "
 
         # Add each component to the command that was passed as an argument.
-        cmd += "--username='#{username}' " unless username.nil?
-        cmd += "--password='#{password}' " unless password.nil?
+        cmd += "--username=#{username} " unless username.nil?
+        cmd += "--password=#{password} " unless password.nil?
         cmd += "--no-metadata " unless metadata
         if nominimizeurl
           cmd += "--no-minimize-url "
         end
-        cmd += "--trunk='#{trunk}' " unless trunk.nil?
-        unless tags.nil?
-          # Fill default tags here so that they can be filtered later
-          tags = ['tags'] if tags.empty?
-          # Process default or user-supplied tags
-          tags.each do |tag|
-            cmd += "--tags='#{tag}' "
-          end
-        end
-        unless branches.nil?
-          # Fill default branches here so that they can be filtered later
-          branches = ['branches'] if branches.empty?
-          # Process default or user-supplied branches
-          branches.each do |branch|
-            cmd += "--branches='#{branch}' "
-          end
-        end
+        cmd += "--trunk=#{trunk} " unless trunk.nil?
+        cmd += "--tags=#{tags} " unless tags.nil?
+        cmd += "--branches=#{branches} " unless branches.nil?
 
         cmd += @url
 
@@ -238,8 +224,8 @@ module Svn2Git
         regex = []
         unless rootistrunk
           regex << "#{trunk}[/]" unless trunk.nil?
-          tags.each{|tag| regex << "#{tag}[/][^/]+[/]"} unless tags.nil? or tags.empty?
-          branches.each{|branch| regex << "#{branch}[/][^/]+[/]"} unless branches.nil? or branches.empty?
+          regex << "#{tags}[/][^/]+[/]" unless tags.nil?
+          regex << "#{branches}[/][^/]+[/]" unless branches.nil?
         end
         regex = '^(?:' + regex.join('|') + ')(?:' + exclude.join('|') + ')'
         cmd += "--ignore-paths='#{regex}' "
