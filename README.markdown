@@ -86,53 +86,53 @@ create a git repo from a svn repo in the specified layout.
 1. The svn repo is in the standard layout of (trunk, branches, tags) at the
 root level of the repo.
 
-        $ svn2git http://svn.example.com/path/to/repo
+        $ LANG=C svn2git http://svn.example.com/path/to/repo
 
 2. The svn repo is NOT in standard layout and has only a trunk and tags at the
 root level of the repo.
 
-        $ svn2git http://svn.example.com/path/to/repo --trunk dev --tags rel --nobranches
+        $ LANG=C svn2git http://svn.example.com/path/to/repo --trunk dev --tags rel --nobranches
 
 3. The svn repo is NOT in standard layout and has only a trunk at the root
 level of the repo.
 
-        $ svn2git http://svn.example.com/path/to/repo --trunk trunk --nobranches --notags
+        $ LANG=C svn2git http://svn.example.com/path/to/repo --trunk trunk --nobranches --notags
 
 4. The svn repo is NOT in standard layout and has no trunk, branches, or tags
 at the root level of the repo. Instead the root level of the repo is
 equivalent to the trunk and there are no tags or branches.
 
-        $ svn2git http://svn.example.com/path/to/repo --rootistrunk
+        $ LANG=C svn2git http://svn.example.com/path/to/repo --rootistrunk
 
 5. The svn repo is in the standard layout but you want to exclude the massive
 doc directory and the backup files you once accidently added.
 
-        $ svn2git http://svn.example.com/path/to/repo --exclude doc --exclude '.*~$'
+        $ LANG=C svn2git http://svn.example.com/path/to/repo --exclude doc --exclude '.*~$'
 
 6. The svn repo actually tracks several projects and you only want to migrate
 one of them.
 
-        $ svn2git http://svn.example.com/path/to/repo/nested_project --no-minimize-url
+        $ LANG=C svn2git http://svn.example.com/path/to/repo/nested_project --no-minimize-url
 
 7. The svn repo is password protected.
 
-        $ svn2git http://svn.example.com/path/to/repo --username <<user_with_perms>>
+        $ LANG=C svn2git http://svn.example.com/path/to/repo --username <<user_with_perms>>
 
 If this doesn't cooperate and you need to specify a password on the command-line:
 
-        $ svn2git http://svn.example.com/path/to/repo --username <<user_with_perms>> --password <<password>>
+        $ LANG=C svn2git http://svn.example.com/path/to/repo --username <<user_with_perms>> --password <<password>>
 
 8. You need to migrate starting at a specific svn revision number.
 
-        $ svn2git http://svn.example.com/path/to/repo --revision <<starting_revision_number>>
+        $ LANG=C svn2git http://svn.example.com/path/to/repo --revision <<starting_revision_number>>
 
 9. You need to migrate starting at a specific svn revision number, ending at a specific revision number.
 
-        $ svn2git http://svn.example.com/path/to/repo --revision <<starting_revision_number>>:<<ending_revision_number>>
+        $ LANG=C svn2git http://svn.example.com/path/to/repo --revision <<starting_revision_number>>:<<ending_revision_number>>
 
 10. Include metadata (git-svn-id) in git logs.
 
-        $ svn2git http://svn.example.com/path/to/repo --metadata
+        $ LANG=C svn2git http://svn.example.com/path/to/repo --metadata
 
 The above will create a git repository in the current directory with the git
 version of the svn repository. Hence, you need to make a directory that you
@@ -151,7 +151,7 @@ as a mirroring tool for your SVN repositories.
 
 The command to call is:
 
-        $ cd <EXISTING_REPO> && svn2git --rebase
+        $ cd <EXISTING_REPO> && LANG=C svn2git --rebase
 
 Authors
 -------
@@ -164,7 +164,7 @@ system with the list of conversions to make, one per line, for example:
 
 Then pass an _authors_ option to svn2git pointing to your file:
 
-    $ svn2git http://svn.example.com/path/to/repo --authors ~/authors.txt
+    $ LANG=C svn2git http://svn.example.com/path/to/repo --authors ~/authors.txt
 
 Alternatively, you can place the authors file into `~/.svn2git/authors` and
 svn2git will load it out of there. This allows you to build up one authors
@@ -195,7 +195,7 @@ underlying git-svn process.
 
 You can turn on verbose logging with the `-v` or `--verbose` flags, like so:
 
-    $ svn2git http://svn.yoursite.com/path/to/repo --verbose
+    $ LANG=C svn2git http://svn.yoursite.com/path/to/repo --verbose
 
 Options Reference
 -----------------
