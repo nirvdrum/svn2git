@@ -330,7 +330,14 @@ module Svn2Git
       svn_branches.delete_if { |b| b.strip !~ %r{^svn\/} }
 
       if @options[:rebase]
-         run_command("git svn fetch", true, true)
+         revision = @options[:revision]
+         cmd = "git svn fetch "
+         unless revision.nil?
+            range = revision.split(":")
+            range[1] = "HEAD" unless range[1]
+            cmd += "-r #{range[0]}:#{range[1]} "
+         end
+         run_command(cmd, true, true)
       end
 
       svn_branches.each do |branch|
