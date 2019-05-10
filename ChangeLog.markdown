@@ -8,6 +8,36 @@
   * Added the ability to specify the '--branches' and '--tags' arguments multiple times (thanks pdf).
   * Fixed a problem with processing of the '--exclude' argument (improper quoting internally) (thanks pdf).
 
+# 2.3.3 - 2016-03-02
+  This is a bugfix release. It provides fix for git localized messages issue, and also fixes "gc is already running" message.
+
+  As git2svn runs git to do it's things (and analyzes it's responses in some points), it is necessary to set LANGUAGE environment variable to "en_US" to fix this kind of error:
+
+    Running command: git branch --track "<some_branch_here>" "remotes/svn/<some_branch_here>"
+    fatal: Не удалось настроить информацию отслеживания; стартовая точка «remotes/svn/<some_branch_here>» не является веткой.
+    ********************************************************************
+    svn2git warning: Tracking remote SVN branches is deprecated.
+    In a future release local branches will be created without tracking.
+    If you must resync your branches, run: svn2git --rebase
+    ********************************************************************
+    Running command: git checkout "<some_branch_here>"
+    error: pathspec '<some_branch_here>' did not match any file(s) known to git.
+    command failed:
+    git checkout "<some_branch_here>"
+
+  Notice localized message of git output. You can fix it with new key `--force-en-us-to-git`.
+
+  Also there was changes in git, which triggers `git gc --auto` after some point of modifications to local git repo, so now svn2git modifies `gc.auto` option, sets it to `0` to disable automatic packing of loose objects.
+  This fixes failing at the end of svn2git script, where it calls `git gc` explicitly:
+
+    Running command: git gc
+    fatal: gc is already running on machine '<machine_name>' pid <pid> (use --force if not)
+    command failed:
+    git gc
+
+  For me, `gc ---auto` starts just after `fetch`, and while svn2git finishes it's work (really fast) it stays running. When svn2git starts `git gc` explicitly, this new process conflicts with already running process, causing an error message.
+
+
 # 2.3.2 - 2014-06-08
 
   This is a bugfix release. It fixes issues running with Windows using MRI ruby and fixes a problem with Ruby 1.8.7.
