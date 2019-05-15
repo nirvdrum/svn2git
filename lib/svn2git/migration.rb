@@ -26,6 +26,13 @@ module Svn2Git
     end
 
     def run!
+      log "LANGUAGE is: #{ENV["LANGUAGE"]}\n"
+      if @options[:forceenustogit]
+        log "Set LANGUAGE environment variable to \"en_US.\"\n"
+        ENV["LANGUAGE"]="en_US"
+        log "LANGUAGE is: #{ENV["LANGUAGE"]}\n"
+      end
+
       if @options[:rebase]
         get_branches
       elsif @options[:rebasebranch]
@@ -37,6 +44,13 @@ module Svn2Git
       fix_tags
       fix_trunk
       optimize_repos
+
+      ensure
+        unless @gc_auto_is_off.nil?
+          run_command("#{git_config_command} --get gc.auto", false)
+          run_command("#{git_config_command} --unset gc.auto")
+          run_command("#{git_config_command} --get gc.auto", false)
+        end
     end
 
     def parse(args)
@@ -54,6 +68,7 @@ module Svn2Git
       options[:username] = nil
       options[:password] = nil
       options[:rebasebranch] = false
+      options[:forceenustogit] = false
 
       if File.exists?(File.expand_path(DEFAULT_AUTHORS_FILE))
         options[:authors] = DEFAULT_AUTHORS_FILE
@@ -136,6 +151,10 @@ module Svn2Git
 
         opts.on('--rebasebranch REBASEBRANCH', 'Rebase specified branch.') do |rebasebranch|
           options[:rebasebranch] = rebasebranch
+        end
+
+        opts.on('--force-en-us-to-git', 'Force en_US locale to be used by git commands, called by this script.') do
+          options[:forceenustogit] = true
         end
 
         opts.separator ""
@@ -223,6 +242,11 @@ module Svn2Git
 
         run_command(cmd, true, true)
       end
+
+      run_command("#{git_config_command} --get gc.auto", false)
+      run_command("#{git_config_command} gc.auto 0")
+      @gc_auto_is_off = true
+      run_command("#{git_config_command} --get gc.auto", false)
 
       run_command("#{git_config_command} svn.authorsfile #{authors}") unless authors.nil?
 
