@@ -402,7 +402,12 @@ module Svn2Git
       # for input and place any received values on a queue for consumption by a pass-through thread that will forward
       # the contents to the underlying sub-process's stdin pipe.
       @stdin_thread ||= Thread.new do
-        loop { @stdin_queue << $stdin.gets.chomp }
+        loop do
+          str = $stdin.gets
+          if str
+            @stdin_queue << $stdin.gets.chomp
+          end
+        end
       end
 
       # Open4 forks, which JRuby doesn't support.  But JRuby added a popen4-compatible method on the IO class,
