@@ -430,13 +430,17 @@ module Svn2Git
         # sub-process's stdin pipe.
         Thread.new do
           loop do
-            user_reply = @stdin_queue.pop
+            begin
+              user_reply = @stdin_queue.pop
 
-            # nil is our cue to stop looping (pun intended).
-            break if user_reply.nil?
+              # nil is our cue to stop looping (pun intended).
+              break if user_reply.nil?
 
-            stdin.puts user_reply
-            stdin.close
+              $stdin.puts user_reply
+              $stdin.close
+            rescue IOError
+              $stdout.print "No input requested.\n"
+            end
           end
         end
 
