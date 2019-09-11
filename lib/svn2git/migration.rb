@@ -357,7 +357,7 @@ module Svn2Git
           # Our --rebase option obviates the need for read-only tracked remotes, however.  So, we'll
           # deprecate the old option, informing those relying on the old behavior that they should
           # use the newer --rebase otion.
-          if status =~ /Cannot setup tracking information/m
+          if status =~ /fatal:.+'#{branch}'.+/
             @cannot_setup_tracking_information = true
             run_command(Svn2Git::Migration.checkout_svn_branch(branch))
           else
@@ -476,7 +476,7 @@ module Svn2Git
       if @git_config_command.nil?
         status = run_command('git config --local --get user.name', false)
 
-        @git_config_command = if status =~ /unknown option/m
+        @git_config_command = if status =~ /error: .+\s.+git config \[.+/m
                                 'git config'
                               else
                                 'git config --local'
@@ -488,4 +488,3 @@ module Svn2Git
 
   end
 end
-
