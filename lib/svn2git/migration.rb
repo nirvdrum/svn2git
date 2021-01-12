@@ -295,20 +295,21 @@ module Svn2Git
       @tags.each do |tag|
         tag = tag.strip
         id      = tag.gsub(%r{^svn\/tags\/}, '').strip
-        subject = run_command("git log -1 --pretty=format:'%s' \"#{escape_quotes(tag)}\"").chomp("'").reverse.chomp("'").reverse
-        date    = run_command("git log -1 --pretty=format:'%ci' \"#{escape_quotes(tag)}\"").chomp("'").reverse.chomp("'").reverse
-        author  = run_command("git log -1 --pretty=format:'%an' \"#{escape_quotes(tag)}\"").chomp("'").reverse.chomp("'").reverse
-        email   = run_command("git log -1 --pretty=format:'%ae' \"#{escape_quotes(tag)}\"").chomp("'").reverse.chomp("'").reverse
+        subject = run_command("git log -1 --pretty=format:'%s' \'#{escape_quotes(tag)}\'").chomp("'").reverse.chomp("'").reverse
+        date    = run_command("git log -1 --pretty=format:'%ci' \'#{escape_quotes(tag)}\'").chomp("'").reverse.chomp("'").reverse
+        author  = run_command("git log -1 --pretty=format:'%an' \'#{escape_quotes(tag)}\'").chomp("'").reverse.chomp("'").reverse
+        email   = run_command("git log -1 --pretty=format:'%ae' \'#{escape_quotes(tag)}\'").chomp("'").reverse.chomp("'").reverse
         run_command("#{git_config_command} user.name \"#{escape_quotes(author)}\"")
         run_command("#{git_config_command} user.email \"#{escape_quotes(email)}\"")
 
         original_git_committer_date = ENV['GIT_COMMITTER_DATE']
         ENV['GIT_COMMITTER_DATE'] = escape_quotes(date)
-        run_command("git tag -a -m \"#{escape_quotes(subject)}\" \"#{escape_quotes(id)}\" \"#{escape_quotes(tag)}\"")
+        run_command("git tag -a -m \'#{escape_quotes(subject)}\' \'#{escape_quotes(id)}\' \'#{escape_quotes(tag)}\'")
         ENV['GIT_COMMITTER_DATE'] = original_git_committer_date
 
-        run_command("git branch -d -r \"#{escape_quotes(tag)}\"")
+        run_command("git branch -d -r \'#{escape_quotes(tag)}\'")
       end
+
 
     ensure
       # We only change the git config values if there are @tags available.  So it stands to reason we should revert them only in that case.
