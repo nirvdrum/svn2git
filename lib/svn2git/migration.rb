@@ -72,7 +72,7 @@ module Svn2Git
           options[:rebase] = true
         end
         
- 				opts.on('--primarybranch BRANCH_NAME', 'Name of Git repo primary branch') do |primarybranch|
+ 	opts.on('--primarybranch BRANCH_NAME', 'Name of Git repo primary branch') do |primarybranch|
           options[:primarybranch] = primarybranch
         end
         
