@@ -43,6 +43,7 @@ module Svn2Git
       # Set up reasonable defaults for options.
       options = {}
       options[:verbose] = false
+      options[:primarybranch] = 'master'
       options[:metadata] = false
       options[:nominimizeurl] = false
       options[:rootistrunk] = false
@@ -70,7 +71,11 @@ module Svn2Git
         opts.on('--rebase', 'Instead of cloning a new project, rebase an existing one against SVN') do
           options[:rebase] = true
         end
-
+        
+ 				opts.on('--primarybranch BRANCH_NAME', 'Name of Git repo primary branch') do |primarybranch|
+          options[:primarybranch] = primarybranch
+        end
+        
         opts.on('--username NAME', 'Username for transports that needs it (http(s), svn)') do |username|
           options[:username] = username
         end
@@ -337,7 +342,7 @@ module Svn2Git
         branch = branch.gsub(/^svn\//,'').strip
         if @options[:rebase] && (@local.include?(branch) || branch == 'trunk')
            lbranch = branch
-           lbranch = 'master' if branch == 'trunk'
+           lbranch = @options[:primarybranch] if branch == 'trunk'
            run_command("git checkout -f \"#{lbranch}\"")
            run_command("git rebase \"remotes/svn/#{branch}\"")
            next
@@ -380,11 +385,12 @@ module Svn2Git
     def fix_trunk
       trunk = @remote.find { |b| b.strip == 'trunk' }
       if trunk && ! @options[:rebase]
+      	lbranch = @options[:primarybranch]
         run_command("git checkout svn/trunk")
-        run_command("git branch -D master")
-        run_command("git checkout -f -b master")
+        run_command("git branch -D \"#{lbranch}\"")
+        run_command("git checkout -f -b \"#{lbranch}\"")
       else
-        run_command("git checkout -f master")
+        run_command("git checkout -f \"#{lbranch}\"")
       end
     end
 
