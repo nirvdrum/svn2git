@@ -1,7 +1,7 @@
 # 2.5.0 - 2021-02-27
 
-	This release introduces the ability to specify primary Git branches other than 'master'.
-	'master' remains the default primary branch name for backwards compatibility.
+  This release introduces the ability to specify primary Git branches other than 'master'.
+  'master' remains the default primary branch name for backwards compatibility.
 
 # 2.4.0 - 2016-10-30
 
