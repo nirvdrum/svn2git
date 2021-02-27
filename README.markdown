@@ -257,5 +257,5 @@ FAQ
     
 3. Why does the primary branch default to 'master'?
 
-		This has been left in for backwards compatability purposes.
+    This has been left in for backwards compatability purposes.
 
