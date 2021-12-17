@@ -1,3 +1,9 @@
+# 2.4.1 - 2021-12-17
+
+  Since 'git-svn' does not support '--password' anymore, this release modifies the mechanism to supply a password when needed.
+
+  * Removed support for '--password' option (jesteves; PR merge pending).
+  * Added support for detecting and using the value of the environment variable 'SVN2GIT_PASSWORD' when `svn git` is invoked (jesteves; PR merge pending).
 # 2.4.0 - 2016-10-30
 
   This release introduces the ability to supply a password for SVN repositories that can't authenticate by other means.

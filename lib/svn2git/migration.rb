@@ -52,7 +52,6 @@ module Svn2Git
       options[:exclude] = []
       options[:revision] = nil
       options[:username] = nil
-      options[:password] = nil
       options[:rebasebranch] = false
 
       if File.exists?(File.expand_path(DEFAULT_AUTHORS_FILE))
@@ -73,10 +72,6 @@ module Svn2Git
 
         opts.on('--username NAME', 'Username for transports that needs it (http(s), svn)') do |username|
           options[:username] = username
-        end
-
-        opts.on('--password PASSWORD', 'Password for transports that need it (http(s), svn)') do |password|
-          options[:password] = password
         end
 
         opts.on('--trunk TRUNK_PATH', 'Subpath to trunk from repository URL (default: trunk)') do |trunk|
@@ -177,13 +172,11 @@ module Svn2Git
       exclude = @options[:exclude]
       revision = @options[:revision]
       username = @options[:username]
-      password = @options[:password]
 
       if rootistrunk
         # Non-standard repository layout.  The repository root is effectively 'trunk.'
         cmd = "git svn init --prefix=svn/ "
         cmd += "--username='#{username}' " unless username.nil?
-        cmd += "--password='#{password}' " unless password.nil?
         cmd += "--no-metadata " unless metadata
         if nominimizeurl
           cmd += "--no-minimize-url "
@@ -196,7 +189,6 @@ module Svn2Git
 
         # Add each component to the command that was passed as an argument.
         cmd += "--username='#{username}' " unless username.nil?
-        cmd += "--password='#{password}' " unless password.nil?
         cmd += "--no-metadata " unless metadata
         if nominimizeurl
           cmd += "--no-minimize-url "
@@ -393,6 +385,15 @@ module Svn2Git
     end
 
     def run_command(cmd, exit_on_error=true, printout_output=false)
+      if ( ( cmd =~ /^git[ ]svn/ ) and ( ENV.key?('SVN2GIT_PASSWORD') ) )
+        password = ENV['SVN2GIT_PASSWORD']
+        cmd = "echo #{password} | " + cmd
+      end
+      
+      _run_command( cmd, exit_on_error, printout_output )
+    end
+
+    def _run_command(cmd, exit_on_error=true, printout_output=false)
       log "Running command: #{cmd}\n"
 
       ret = ''
@@ -434,7 +435,7 @@ module Svn2Git
 
             # nil is our cue to stop looping (pun intended).
             break if user_reply.nil?
-
+           
             stdin.puts user_reply
             stdin.close
           end
