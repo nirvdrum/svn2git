@@ -407,10 +407,10 @@ module Svn2Git
 
       # Open4 forks, which JRuby doesn't support.  But JRuby added a popen4-compatible method on the IO class,
       # so we can use that instead.
-      IO.popen("2>&1 #{cmd}") do |output|
+      IO.popen("2>&1 #{cmd}") do |pipe|
         threads = []
 
-        threads << Thread.new(output) do |output|
+        threads << Thread.new(pipe) do |output|
           # git-svn seems to do all of its prompting for user input via STDERR.  When it prompts for input, it will
           # not terminate the line with a newline character, so we can't split the input up by newline.  It will,
           # however, use a space to separate the user input from the prompt.  So we split on word boundaries here
@@ -428,7 +428,7 @@ module Svn2Git
 
         # Simple pass-through thread to take anything the user types via STDIN and passes it through to the
         # sub-process's stdin pipe.
-        Thread.new do
+        Thread.new(pipe) do |stdin|
           loop do
             user_reply = @stdin_queue.pop
 
