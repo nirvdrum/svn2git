@@ -396,57 +396,22 @@ module Svn2Git
       log "Running command: #{cmd}\n"
 
       ret = ''
-      @stdin_queue ||= Queue.new
-
-      # We need to fetch input from the user to pass through to the underlying sub-process.  We'll constantly listen
-      # for input and place any received values on a queue for consumption by a pass-through thread that will forward
-      # the contents to the underlying sub-process's stdin pipe.
-      @stdin_thread ||= Thread.new do
-        loop { @stdin_queue << $stdin.gets.chomp }
-      end
-
       # Open4 forks, which JRuby doesn't support.  But JRuby added a popen4-compatible method on the IO class,
-      # so we can use that instead.
-      IO.popen("2>&1 #{cmd}") do |output|
-        threads = []
-
-        threads << Thread.new(output) do |output|
-          # git-svn seems to do all of its prompting for user input via STDERR.  When it prompts for input, it will
-          # not terminate the line with a newline character, so we can't split the input up by newline.  It will,
-          # however, use a space to separate the user input from the prompt.  So we split on word boundaries here
-          # while draining STDERR.
-          output.each(' ') do |word|
-            ret << word
-
-            if printout_output
-              $stdout.print word
-            else
-              log word
-            end
+      # so we can use that instead. Each command inherits the parent stdin so there's no need to manage it or close it before reading stdout.
+      IO.popen(cmd, :in => 0, :err => [:child, :out]) do |output|
+        if printout_output || @options[:verbose]
+          # Normally, `IO.copy_stream()` would be used, but we need compatibility with interactive supprocesses.
+          while c = output.getc do
+            ret << c
+            putc c
+            STDOUT.flush # `putc`'s `STDOUT` is buffered by default, and `STDOUT.sync = true` is the wrong solution because it's a global hack.
           end
+        else # Save output only without logging or printing to stdout.
+          ret = output.read
         end
-
-        # Simple pass-through thread to take anything the user types via STDIN and passes it through to the
-        # sub-process's stdin pipe.
-        Thread.new do
-          loop do
-            user_reply = @stdin_queue.pop
-
-            # nil is our cue to stop looping (pun intended).
-            break if user_reply.nil?
-
-            stdin.puts user_reply
-            stdin.close
-          end
-        end
-
-        threads.each(&:join)
-
-        # Push nil to the stdin_queue to gracefully exit the STDIN pass-through thread.
-        @stdin_queue << nil
       end
 
-      if exit_on_error && $?.exitstatus != 0
+      if exit_on_error && !$?.success?
         $stderr.puts "command failed:\n#{cmd}"
         exit -1
       end
