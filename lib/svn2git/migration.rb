@@ -368,7 +368,7 @@ module Svn2Git
         branch = branch.gsub(/^svn\//,'').strip
         if @options[:rebase] && (@local.include?(branch) || branch == 'trunk')
            lbranch = branch
-           lbranch = 'master' if branch == 'trunk'
+           lbranch = 'main' if branch == 'trunk'
            run_command("git checkout -f \"#{lbranch}\"")
            run_command("git rebase \"remotes/svn/#{branch}\"")
            next
@@ -412,10 +412,10 @@ module Svn2Git
       trunk = @remote.find { |b| b.strip == 'trunk' }
       if trunk && ! @options[:rebase]
         run_command("git checkout svn/trunk")
-        run_command("git branch -D master")
-        run_command("git checkout -f -b master")
+        run_command("git branch -D main")
+        run_command("git checkout -f -b main")
       else
-        run_command("git checkout -f master")
+        run_command("git checkout -f main")
       end
     end
 
